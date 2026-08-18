@@ -32,6 +32,7 @@ const obtenerCitasUsuario = async (req, res) => {
         INNER JOIN PROFESIONAL C ON C.OID = B.PROFESIONAL_OID
         INNER JOIN ESTADOS D ON D.OID = B.ESTADO
         WHERE A.DOCUMENTO = $1
+        AND B.ESTADO IN (3,4)
     `,
       [documento],
     );
@@ -137,7 +138,12 @@ const crearCita = async (req, res) => {
   }
 };
 
+const actualizarEstadoCita = async (req, res) => {
+  
+};
+
 module.exports = {
   obtenerCitasUsuario,
   crearCita,
+  actualizarEstadoCita,
 };
