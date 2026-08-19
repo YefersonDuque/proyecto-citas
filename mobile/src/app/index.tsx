@@ -4,11 +4,15 @@ import { StyleSheet } from "react-native";
 
 import { Cita } from "../types/Cita";
 import CitaCard from "../components/CitaCard";
+import { Usuario } from "../types/Usuario";
+import UsuarioCard from "../components/UsuarioCard";
 
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
   const [citas, setCitas] = useState<Cita[]>([]);
   const [mensaje, setMensaje] = useState("");
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [busquedarealizada, setBusquedaRealizada] = useState(false);
 
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
@@ -38,6 +42,35 @@ export default function HomeScreen() {
       console.log("Respuesta:", datos);
     } catch (error) {
       console.error("Error al actualizar estado de la cita:", error);
+    }
+  };
+
+  const buscarUsuario = async () => {
+    setMensaje("");
+    setUsuario(null);
+    setCitas([]);
+
+    if (!documento) {
+      setMensaje("Por favor, ingresa tu documento");
+      return;
+    }
+    setBusquedaRealizada(true);
+    try {
+      const respuesta = await fetch(
+        `http://localhost:3000/usuarios/${documento}`,
+      );
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        setMensaje(datos.message);
+        return;
+      }
+
+      setUsuario(datos);
+    } catch (error) {
+      console.error("Error al consultar usuario:", error);
+      setMensaje("Error al consultar el usuario");
     }
   };
 
@@ -85,12 +118,26 @@ export default function HomeScreen() {
           onChangeText={setDocumento}
         />
 
-        <Pressable style={styles.button} onPress={buscarCitas}>
+        {/* <Pressable style={styles.button} onPress={buscarCitas}>
           <Text style={styles.buttonText}>Buscar citas</Text>
+        </Pressable> */}
+        <Pressable style={styles.button} onPress={buscarUsuario}>
+          <Text style={styles.buttonText}>Buscar usuario</Text>
         </Pressable>
       </View>
 
+      {/* {mensaje !== "" && <Text>{mensaje}</Text>}
+
+      {citas.map((cita) => (
+        <CitaCard
+          key={cita.oid}
+          cita={cita}
+          actualizarEstadoCita={actualizarEstadoCita}
+        />
+      ))} */}
       {mensaje !== "" && <Text>{mensaje}</Text>}
+
+      {usuario !== null && <UsuarioCard usuario={usuario} />}
 
       {citas.map((cita) => (
         <CitaCard
