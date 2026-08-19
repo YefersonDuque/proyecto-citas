@@ -32,7 +32,7 @@ const obtenerCitasUsuario = async (req, res) => {
         INNER JOIN PROFESIONAL C ON C.OID = B.PROFESIONAL_OID
         INNER JOIN ESTADOS D ON D.OID = B.ESTADO
         WHERE A.DOCUMENTO = $1
-        AND B.ESTADO IN (3,4)
+        AND B.ESTADO IN (3,4,5)
     `,
       [documento],
     );
@@ -158,6 +158,12 @@ const actualizarEstadoCita = async (req, res) => {
       });
     }
 
+    const estadoActual = result.rows[0].estado;
+
+    console.log("OID de la cita:", oid);
+    console.log("Estado actual:", estadoActual);
+    console.log("Nuevo estado:", estado);
+
     if (estadoActual === 3 && estado !== 4 && estado !== 5) {
       return res.status(400).json({
         message: "La cita pendiente solo puede confirmarse o cancelarse",
@@ -166,7 +172,7 @@ const actualizarEstadoCita = async (req, res) => {
 
     if (estadoActual === 4 && estado !== 5) {
       return res.status(400).json({
-        message: "La cita solo puede ser cancelada",
+        message: "La cita confirmada solo puede ser cancelada",
       });
     }
 
@@ -188,7 +194,13 @@ const actualizarEstadoCita = async (req, res) => {
     );
 
     return res.status(200).json(resultUpdate.rows[0]);
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error al actualizar estado de la cita:", error);
+
+    return res.status(500).json({
+      message: "Error interno del servidor",
+    });
+  }
 };
 
 module.exports = {
