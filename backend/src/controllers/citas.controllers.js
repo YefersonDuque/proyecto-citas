@@ -139,7 +139,56 @@ const crearCita = async (req, res) => {
 };
 
 const actualizarEstadoCita = async (req, res) => {
-  
+  const { oid } = req.params;
+  const { estado } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+        SELECT OID, ESTADO
+        FROM CITAS
+        WHERE OID = $1
+      `,
+      [oid],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "La cita no existe",
+      });
+    }
+
+    if (estadoActual === 3 && estado !== 4 && estado !== 5) {
+      return res.status(400).json({
+        message: "La cita pendiente solo puede confirmarse o cancelarse",
+      });
+    }
+
+    if (estadoActual === 4 && estado !== 5) {
+      return res.status(400).json({
+        message: "La cita solo puede ser cancelada",
+      });
+    }
+
+    if (estadoActual === 5) {
+      return res.status(400).json({
+        message: "La cita ya fue cancelada y no puede modificarse",
+      });
+    }
+
+    const resultUpdate = await pool.query(
+      `
+        UPDATE CITAS
+        SET ESTADO = $1,
+            FECHA_ACTUALIZA = CURRENT_TIMESTAMP
+        WHERE OID = $2
+        RETURNING *
+      `,
+      [estado, oid],
+    );
+
+    return res.status(200).json(resultUpdate.rows[0]);
+  } catch (error) {}
 };
 
 module.exports = {
