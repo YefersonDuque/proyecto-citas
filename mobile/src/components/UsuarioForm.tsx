@@ -172,9 +172,10 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: 'center'
   },
 
   row: {

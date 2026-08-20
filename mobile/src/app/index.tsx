@@ -8,14 +8,16 @@ import CitaCard from "../components/CitaCard";
 import { Usuario } from "../types/Usuario";
 import UsuarioCard from "../components/UsuarioCard";
 
+type Modo = "usuario" | "editar" | "citas" | "agendar";
+
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
   const [citas, setCitas] = useState<Cita[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [busquedarealizada, setBusquedaRealizada] = useState(false);
-  const [editandoUsuario, setEditandoUsuario] = useState(false);
+  const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [mensajeCitas, setMensajeCitas] = useState("");
+  const [modo, setModo] = useState<Modo>("usuario");
 
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
@@ -54,7 +56,7 @@ export default function HomeScreen() {
     setUsuario(null);
     setCitas([]);
     setBusquedaRealizada(false);
-    setEditandoUsuario(false);
+    setModo("usuario");
 
     if (!documento) {
       setMensaje("Por favor, ingresa tu documento");
@@ -83,7 +85,11 @@ export default function HomeScreen() {
   };
 
   const editarUsuario = () => {
-    setEditandoUsuario(true);
+    setModo("editar");
+  };
+
+  const agendarCitas = () => {
+    setModo("agendar");
   };
 
   const buscarCitas = async () => {
@@ -112,6 +118,8 @@ export default function HomeScreen() {
         return;
       }
 
+      setModo("citas");
+
       if (datos.length === 0) {
         setMensajeCitas("No tienes citas registradas.");
         return;
@@ -128,19 +136,21 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Citas Médicas</Text>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Documento</Text>
+      {modo === "usuario" && !busquedaRealizada && (
+        <View style={styles.form}>
+          <Text style={styles.label}>Documento</Text>
 
-        <TextInput
-          style={styles.input}
-          value={documento}
-          onChangeText={setDocumento}
-        />
+          <TextInput
+            style={styles.input}
+            value={documento}
+            onChangeText={setDocumento}
+          />
 
-        <Pressable style={styles.button} onPress={buscarUsuario}>
-          <Text style={styles.buttonText}>Buscar usuario</Text>
-        </Pressable>
-      </View>
+          <Pressable style={styles.button} onPress={buscarUsuario}>
+            <Text style={styles.buttonText}>Buscar usuario</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* MENSAJE DE USUARIO */}
       {mensaje !== "" && usuario === null && (
@@ -148,8 +158,23 @@ export default function HomeScreen() {
       )}
 
       {/* USUARIO EXISTENTE */}
-      {usuario !== null && !editandoUsuario && (
+      {usuario !== null && modo === "usuario" && (
         <>
+          <View style={styles.volverContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.volver,
+                pressed && styles.volverPresionado,
+              ]}
+              onPress={() => {
+                setUsuario(null);
+                setBusquedaRealizada(false);
+                setModo("usuario");
+              }}
+            >
+              <Text style={styles.textoVolver}>← Volver</Text>
+            </Pressable>
+          </View>
           <UsuarioCard usuario={usuario} />
 
           <View style={styles.actions}>
@@ -165,46 +190,103 @@ export default function HomeScreen() {
       )}
 
       {/* EDITAR USUARIO */}
-      {usuario !== null && editandoUsuario && (
-        <UsuarioForm
-          documento={usuario.documento}
-          usuario={usuario}
-          onUsuarioGuardado={(usuarioActualizado) => {
-            setUsuario(usuarioActualizado);
-            setEditandoUsuario(false);
-          }}
-        />
+      {usuario !== null && modo === "editar" && (
+        <>
+          <View style={styles.volverContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.volver,
+                pressed && styles.volverPresionado,
+              ]}
+              onPress={() => setModo("usuario")}
+            >
+              <Text style={styles.textoVolver}> ← Volver </Text>
+            </Pressable>
+          </View>
+          <UsuarioForm
+            documento={usuario.documento}
+            usuario={usuario}
+            onUsuarioGuardado={(usuarioActualizado) => {
+              setUsuario(usuarioActualizado);
+              setModo("usuario");
+            }}
+          />
+        </>
       )}
 
       {/* CREAR USUARIO */}
-      {busquedarealizada && usuario === null && (
-        <UsuarioForm
-          documento={documento}
-          onUsuarioGuardado={(usuarioCreado) => {
-            setUsuario(usuarioCreado);
-            setMensaje("");
-          }}
-        />
+      {busquedaRealizada && usuario === null && (
+        <>
+          <View style={styles.volverContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.volver,
+                pressed && styles.volverPresionado,
+              ]}
+              onPress={() => setModo("usuario")}
+            >
+              <Text style={styles.textoVolver}>← Volver</Text>
+            </Pressable>
+          </View>
+          <UsuarioForm
+            documento={documento}
+            onUsuarioGuardado={(usuarioCreado) => {
+              setUsuario(usuarioCreado);
+              setMensaje("");
+            }}
+          />
+        </>
       )}
 
-      {/* MENSAJE DE CITAS */}
-      {mensajeCitas !== "" && (
-        <Text style={styles.message}>{mensajeCitas}</Text>
-      )}
+      {modo === "citas" && (
+        <>
+          <View style={styles.volverContainer}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.volver,
+                pressed && styles.volverPresionado,
+              ]}
+              onPress={() => setModo("usuario")}
+            >
+              <Text style={styles.textoVolver}> ← Volver </Text>
+            </Pressable>
+          </View>
+          <View>
+            {mensajeCitas !== "" && (
+              <Text style={styles.message}>{mensajeCitas}</Text>
+            )}
 
-      {/* CITAS */}
-      {citas.map((cita) => (
-        <CitaCard
-          key={cita.oid}
-          cita={cita}
-          actualizarEstadoCita={actualizarEstadoCita}
-        />
-      ))}
+            {citas.map((cita) => (
+              <CitaCard
+                key={cita.oid}
+                cita={cita}
+                actualizarEstadoCita={actualizarEstadoCita}
+              />
+            ))}
+
+            <Pressable style={styles.agendarCita} onPress={agendarCitas}>
+              <Text style={styles.buttonText}>+ Agendar cita</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  agendarCita: {
+    maxWidth: 500,
+    alignSelf: "center",
+    width: "100%",
+    backgroundColor: "#2563EB",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+    marginTop: 15,
+  },
+
   container: {
     padding: 20,
   },
@@ -219,11 +301,13 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "bold",
     marginBottom: 30,
+    textAlign: "center",
   },
 
   label: {
-    fontSize: 16,
+    fontSize: 25,
     marginBottom: 8,
+    fontWeight: "bold",
   },
 
   input: {
@@ -241,6 +325,46 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginBottom: 10,
+  },
+
+  volverContainer: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
+    marginBottom: 10,
+  },
+
+  volver: {
+    alignSelf: "flex-start",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+    shadowOpacity: 15.55,
+    shadowRadius: 14,
+    elevation: 1,
+  },
+
+  volverPresionado: {
+    opacity: 0.85,
+    transform: [{ scale: 0.94 }],
+    shadowOpacity: 0.05,
+    elevation: 1,
+  },
+
+  textoVolver: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
   },
 
   actions: {
