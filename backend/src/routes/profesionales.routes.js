@@ -1,10 +1,10 @@
 const express = require("express");
 const {
-  obtenerProfesionales,
+  obtenerProfesionalesActivos,
 } = require("../controllers/profesionales.controllers.js");
 
 const router = express.Router();
 
-router.get("/profesionales", obtenerProfesionales);
+router.get("/profesionales", obtenerProfesionalesActivos);
 
 module.exports = router;

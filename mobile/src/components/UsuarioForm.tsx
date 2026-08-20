@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 500,
     alignSelf: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
   },
 
   title: {

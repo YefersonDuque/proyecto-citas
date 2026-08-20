@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  ImageBackground,
+} from "react-native";
 import { StyleSheet } from "react-native";
-
+import AgregarCitaForm from "@/components/AgendarCitaForm";
 import UsuarioForm from "@/components/UsuarioForm";
 import { Cita } from "../types/Cita";
 import CitaCard from "../components/CitaCard";
@@ -108,13 +115,15 @@ export default function HomeScreen() {
 
       const datos = await respuesta.json();
 
+      console.log("Respuesta de consultar citas:", datos);
+
       if (!respuesta.ok) {
-        setMensajeCitas(datos.message);
+        setMensajeCitas(datos.message || "No fue posible consultar las citas.");
         return;
       }
 
       if (!Array.isArray(datos)) {
-        setMensajeCitas(datos.message);
+        setMensajeCitas("La respuesta del servidor no es válida.");
         return;
       }
 
@@ -133,144 +142,180 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Citas Médicas</Text>
+    <View style={styles.background}>
+      <ImageBackground
+        source={require("../../assets/images/fondo-medico.png")}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Citas Médicas</Text>
 
-      {modo === "usuario" && !busquedaRealizada && (
-        <View style={styles.form}>
-          <Text style={styles.label}>Documento</Text>
+          {modo === "usuario" && !busquedaRealizada && (
+            <View style={styles.form}>
+              <Text style={styles.label}>Documento</Text>
 
-          <TextInput
-            style={styles.input}
-            value={documento}
-            onChangeText={setDocumento}
-          />
-
-          <Pressable style={styles.button} onPress={buscarUsuario}>
-            <Text style={styles.buttonText}>Buscar usuario</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* MENSAJE DE USUARIO */}
-      {mensaje !== "" && usuario === null && (
-        <Text style={styles.message}>{mensaje}</Text>
-      )}
-
-      {/* USUARIO EXISTENTE */}
-      {usuario !== null && modo === "usuario" && (
-        <>
-          <View style={styles.volverContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.volver,
-                pressed && styles.volverPresionado,
-              ]}
-              onPress={() => {
-                setUsuario(null);
-                setBusquedaRealizada(false);
-                setModo("usuario");
-              }}
-            >
-              <Text style={styles.textoVolver}>← Volver</Text>
-            </Pressable>
-          </View>
-          <UsuarioCard usuario={usuario} />
-
-          <View style={styles.actions}>
-            <Pressable style={styles.actionButton} onPress={editarUsuario}>
-              <Text style={styles.buttonText}>Editar datos</Text>
-            </Pressable>
-
-            <Pressable style={styles.actionButton} onPress={buscarCitas}>
-              <Text style={styles.buttonText}>Consultar citas</Text>
-            </Pressable>
-          </View>
-        </>
-      )}
-
-      {/* EDITAR USUARIO */}
-      {usuario !== null && modo === "editar" && (
-        <>
-          <View style={styles.volverContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.volver,
-                pressed && styles.volverPresionado,
-              ]}
-              onPress={() => setModo("usuario")}
-            >
-              <Text style={styles.textoVolver}> ← Volver </Text>
-            </Pressable>
-          </View>
-          <UsuarioForm
-            documento={usuario.documento}
-            usuario={usuario}
-            onUsuarioGuardado={(usuarioActualizado) => {
-              setUsuario(usuarioActualizado);
-              setModo("usuario");
-            }}
-          />
-        </>
-      )}
-
-      {/* CREAR USUARIO */}
-      {busquedaRealizada && usuario === null && (
-        <>
-          <View style={styles.volverContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.volver,
-                pressed && styles.volverPresionado,
-              ]}
-              onPress={() => setModo("usuario")}
-            >
-              <Text style={styles.textoVolver}>← Volver</Text>
-            </Pressable>
-          </View>
-          <UsuarioForm
-            documento={documento}
-            onUsuarioGuardado={(usuarioCreado) => {
-              setUsuario(usuarioCreado);
-              setMensaje("");
-            }}
-          />
-        </>
-      )}
-
-      {modo === "citas" && (
-        <>
-          <View style={styles.volverContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.volver,
-                pressed && styles.volverPresionado,
-              ]}
-              onPress={() => setModo("usuario")}
-            >
-              <Text style={styles.textoVolver}> ← Volver </Text>
-            </Pressable>
-          </View>
-          <View>
-            {mensajeCitas !== "" && (
-              <Text style={styles.message}>{mensajeCitas}</Text>
-            )}
-
-            {citas.map((cita) => (
-              <CitaCard
-                key={cita.oid}
-                cita={cita}
-                actualizarEstadoCita={actualizarEstadoCita}
+              <TextInput
+                style={styles.input}
+                value={documento}
+                onChangeText={setDocumento}
               />
-            ))}
 
-            <Pressable style={styles.agendarCita} onPress={agendarCitas}>
-              <Text style={styles.buttonText}>+ Agendar cita</Text>
-            </Pressable>
-          </View>
-        </>
-      )}
-    </ScrollView>
+              <Pressable style={styles.button} onPress={buscarUsuario}>
+                <Text style={styles.buttonText}>Buscar usuario</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {/* MENSAJE DE USUARIO */}
+          {mensaje !== "" && usuario === null && (
+            <Text style={styles.message}>{mensaje}</Text>
+          )}
+
+          {/* USUARIO EXISTENTE */}
+          {usuario !== null && modo === "usuario" && (
+            <>
+              <View style={styles.volverContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.volver,
+                    pressed && styles.volverPresionado,
+                  ]}
+                  onPress={() => {
+                    setUsuario(null);
+                    setBusquedaRealizada(false);
+                    setModo("usuario");
+                  }}
+                >
+                  <Text style={styles.textoVolver}>← Volver</Text>
+                </Pressable>
+              </View>
+              <UsuarioCard usuario={usuario} />
+
+              <View style={styles.actions}>
+                <Pressable style={styles.actionButton} onPress={editarUsuario}>
+                  <Text style={styles.buttonText}>Editar datos</Text>
+                </Pressable>
+
+                <Pressable style={styles.actionButton} onPress={buscarCitas}>
+                  <Text style={styles.buttonText}>Consultar citas</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+
+          {/* EDITAR USUARIO */}
+          {usuario !== null && modo === "editar" && (
+            <>
+              <View style={styles.volverContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.volver,
+                    pressed && styles.volverPresionado,
+                  ]}
+                  onPress={() => setModo("usuario")}
+                >
+                  <Text style={styles.textoVolver}> ← Volver </Text>
+                </Pressable>
+              </View>
+              <UsuarioForm
+                documento={usuario.documento}
+                usuario={usuario}
+                onUsuarioGuardado={(usuarioActualizado) => {
+                  setUsuario(usuarioActualizado);
+                  setModo("usuario");
+                }}
+              />
+            </>
+          )}
+
+          {/* CREAR USUARIO */}
+          {busquedaRealizada && usuario === null && (
+            <>
+              <View style={styles.volverContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.volver,
+                    pressed && styles.volverPresionado,
+                  ]}
+                  onPress={() => {
+                    setBusquedaRealizada(false);
+                    setMensaje("");
+                    setModo("usuario");
+                  }}
+                >
+                  <Text style={styles.textoVolver}>← Volver</Text>
+                </Pressable>
+              </View>
+
+              <UsuarioForm
+                documento={documento}
+                onUsuarioGuardado={(usuarioCreado) => {
+                  setUsuario(usuarioCreado);
+                  setMensaje("");
+                }}
+              />
+            </>
+          )}
+          {/*citas*/}
+          {modo === "citas" && (
+            <>
+              <View style={styles.volverContainer}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.volver,
+                    pressed && styles.volverPresionado,
+                  ]}
+                  onPress={() => setModo("usuario")}
+                >
+                  <Text style={styles.textoVolver}> ← Volver </Text>
+                </Pressable>
+              </View>
+              <View>
+                {mensajeCitas !== "" && (
+                  <Text style={styles.message}>{mensajeCitas}</Text>
+                )}
+
+                {citas.map((cita) => (
+                  <CitaCard
+                    key={cita.oid}
+                    cita={cita}
+                    actualizarEstadoCita={actualizarEstadoCita}
+                  />
+                ))}
+
+                <Pressable style={styles.agendarCita} onPress={agendarCitas}>
+                  <Text style={styles.buttonText}>+ Agendar cita</Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+
+          {/*formulario de agendar citas */}
+          {modo === "agendar" && (
+            <>
+              <View style={styles.volverContainer}>
+                <Pressable
+                  style={styles.volver}
+                  onPress={() => setModo("citas")}
+                >
+                  <Text style={styles.textoVolver}>← Volver</Text>
+                </Pressable>
+              </View>
+              {usuario && (
+                <AgregarCitaForm
+                  documento={usuario.documento}
+                  onCitaAgendada={buscarCitas}
+                />
+              )}
+            </>
+          )}
+        </ScrollView>
+      </ImageBackground>
+    </View>
   );
 }
 
@@ -285,6 +330,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
     marginTop: 15,
+  },
+
+  backgroundImage: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
+  background: {
+    flex: 1,
   },
 
   container: {
@@ -308,6 +363,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     marginBottom: 8,
     fontWeight: "bold",
+    
   },
 
   input: {
@@ -316,6 +372,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 15,
+    backgroundColor: "rgba(255, 255, 255, 0.85)",
   },
 
   button: {

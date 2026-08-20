@@ -6,10 +6,13 @@ const obtenerCitasUsuario = async (req, res) => {
   try {
     const usuarioResult = await pool.query(
       `
-            SELECT OID FROM USUARIOS WHERE DOCUMENTO = $1
-        `,
+        SELECT OID
+        FROM USUARIOS
+        WHERE DOCUMENTO = $1
+      `,
       [documento],
     );
+
     if (usuarioResult.rows.length === 0) {
       return res.status(404).json({
         message: "Usuario no encontrado",
@@ -33,18 +36,19 @@ const obtenerCitasUsuario = async (req, res) => {
         INNER JOIN ESTADOS D ON D.OID = B.ESTADO
         WHERE A.DOCUMENTO = $1
         AND B.ESTADO IN (3,4,5)
-    `,
+      `,
       [documento],
     );
+
     if (result.rowCount === 0) {
-      return res.status(200).json({
-        message: "El usuario no tiene citas agendadas",
-      });
+      return res.status(200).json([]);
     }
+
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error("Error al consultar citas:", error);
-    res.status(500).json({
+
+    return res.status(500).json({
       message: "Error interno del servidor",
     });
   }
