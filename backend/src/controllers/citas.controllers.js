@@ -38,7 +38,7 @@ const obtenerCitasUsuario = async (req, res) => {
     );
     if (result.rowCount === 0) {
       return res.status(200).json({
-        message: "El usuario existe pero no tiene citas registradas",
+        message: "El usuario no tiene citas agendadas",
       });
     }
     return res.status(200).json(result.rows);

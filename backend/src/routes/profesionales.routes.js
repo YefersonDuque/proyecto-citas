@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   obtenerProfesionales,
-} = require("../controllers/profesionales.controller.js");
+} = require("../controllers/profesionales.controllers.js");
 
 const router = express.Router();
 

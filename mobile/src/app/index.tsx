@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { StyleSheet } from "react-native";
 
+import UsuarioForm from "@/components/UsuarioForm";
 import { Cita } from "../types/Cita";
 import CitaCard from "../components/CitaCard";
 import { Usuario } from "../types/Usuario";
@@ -13,6 +14,8 @@ export default function HomeScreen() {
   const [mensaje, setMensaje] = useState("");
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [busquedarealizada, setBusquedaRealizada] = useState(false);
+  const [editandoUsuario, setEditandoUsuario] = useState(false);
+  const [mensajeCitas, setMensajeCitas] = useState("");
 
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
@@ -47,14 +50,17 @@ export default function HomeScreen() {
 
   const buscarUsuario = async () => {
     setMensaje("");
+    setMensajeCitas("");
     setUsuario(null);
     setCitas([]);
+    setBusquedaRealizada(false);
+    setEditandoUsuario(false);
 
     if (!documento) {
       setMensaje("Por favor, ingresa tu documento");
       return;
     }
-    setBusquedaRealizada(true);
+
     try {
       const respuesta = await fetch(
         `http://localhost:3000/usuarios/${documento}`,
@@ -64,9 +70,11 @@ export default function HomeScreen() {
 
       if (!respuesta.ok) {
         setMensaje(datos.message);
+        setBusquedaRealizada(true);
         return;
       }
 
+      setBusquedaRealizada(true);
       setUsuario(datos);
     } catch (error) {
       console.error("Error al consultar usuario:", error);
@@ -74,35 +82,46 @@ export default function HomeScreen() {
     }
   };
 
+  const editarUsuario = () => {
+    setEditandoUsuario(true);
+  };
+
   const buscarCitas = async () => {
-    setMensaje("");
+    setMensajeCitas("");
     setCitas([]);
 
     if (!documento) {
-      setMensaje("Por favor, ingresa tu documento");
+      setMensajeCitas("Por favor, ingresa tu documento");
       return;
     }
 
-    const respuesta = await fetch(
-      `http://localhost:3000/usuarios/${documento}/citas`,
-    );
+    try {
+      const respuesta = await fetch(
+        `http://localhost:3000/usuarios/${documento}/citas`,
+      );
 
-    const datos = await respuesta.json();
+      const datos = await respuesta.json();
 
-    if (!respuesta.ok) {
-      setMensaje(datos.message);
-      setCitas([]);
-      return;
+      if (!respuesta.ok) {
+        setMensajeCitas(datos.message);
+        return;
+      }
+
+      if (!Array.isArray(datos)) {
+        setMensajeCitas(datos.message);
+        return;
+      }
+
+      if (datos.length === 0) {
+        setMensajeCitas("No tienes citas registradas.");
+        return;
+      }
+
+      setCitas(datos);
+    } catch (error) {
+      console.error("Error al consultar citas:", error);
+      setMensajeCitas("Error al consultar las citas");
     }
-
-    if (!Array.isArray(datos)) {
-      setMensaje(datos.message);
-      setCitas([]);
-      return;
-    }
-
-    setMensaje("");
-    setCitas(datos);
   };
 
   return (
@@ -118,27 +137,62 @@ export default function HomeScreen() {
           onChangeText={setDocumento}
         />
 
-        {/* <Pressable style={styles.button} onPress={buscarCitas}>
-          <Text style={styles.buttonText}>Buscar citas</Text>
-        </Pressable> */}
         <Pressable style={styles.button} onPress={buscarUsuario}>
           <Text style={styles.buttonText}>Buscar usuario</Text>
         </Pressable>
       </View>
 
-      {/* {mensaje !== "" && <Text>{mensaje}</Text>}
+      {/* MENSAJE DE USUARIO */}
+      {mensaje !== "" && usuario === null && (
+        <Text style={styles.message}>{mensaje}</Text>
+      )}
 
-      {citas.map((cita) => (
-        <CitaCard
-          key={cita.oid}
-          cita={cita}
-          actualizarEstadoCita={actualizarEstadoCita}
+      {/* USUARIO EXISTENTE */}
+      {usuario !== null && !editandoUsuario && (
+        <>
+          <UsuarioCard usuario={usuario} />
+
+          <View style={styles.actions}>
+            <Pressable style={styles.actionButton} onPress={editarUsuario}>
+              <Text style={styles.buttonText}>Editar datos</Text>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={buscarCitas}>
+              <Text style={styles.buttonText}>Consultar citas</Text>
+            </Pressable>
+          </View>
+        </>
+      )}
+
+      {/* EDITAR USUARIO */}
+      {usuario !== null && editandoUsuario && (
+        <UsuarioForm
+          documento={usuario.documento}
+          usuario={usuario}
+          onUsuarioGuardado={(usuarioActualizado) => {
+            setUsuario(usuarioActualizado);
+            setEditandoUsuario(false);
+          }}
         />
-      ))} */}
-      {mensaje !== "" && <Text>{mensaje}</Text>}
+      )}
 
-      {usuario !== null && <UsuarioCard usuario={usuario} />}
+      {/* CREAR USUARIO */}
+      {busquedarealizada && usuario === null && (
+        <UsuarioForm
+          documento={documento}
+          onUsuarioGuardado={(usuarioCreado) => {
+            setUsuario(usuarioCreado);
+            setMensaje("");
+          }}
+        />
+      )}
 
+      {/* MENSAJE DE CITAS */}
+      {mensajeCitas !== "" && (
+        <Text style={styles.message}>{mensajeCitas}</Text>
+      )}
+
+      {/* CITAS */}
       {citas.map((cita) => (
         <CitaCard
           key={cita.oid}
@@ -186,12 +240,38 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+
+  actions: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
+    marginTop: 10,
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  actionButton: {
+    flex: 1,
+    backgroundColor: "#2563EB",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
   },
 
   buttonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
+  },
+
+  message: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
+    marginTop: 20,
+    marginBottom: 10,
+    fontSize: 16,
   },
 });
