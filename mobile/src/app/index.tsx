@@ -8,14 +8,14 @@ import {
   ImageBackground,
 } from "react-native";
 import { StyleSheet } from "react-native";
-import AgregarCitaForm from "@/components/AgendarCitaForm";
+import AgregarCitaForm from "@/components/CrearCitaForm";
 import UsuarioForm from "@/components/UsuarioForm";
 import { Cita } from "../types/Cita";
 import CitaCard from "../components/CitaCard";
 import { Usuario } from "../types/Usuario";
 import UsuarioCard from "../components/UsuarioCard";
 
-type Modo = "usuario" | "editar" | "citas" | "agendar";
+type Modo = "usuario" | "editar" | "citas" | "crear";
 
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
@@ -50,11 +50,17 @@ export default function HomeScreen() {
             : cita,
         ),
       );
-
-      console.log("Respuesta:", datos);
     } catch (error) {
       console.error("Error al actualizar estado de la cita:", error);
     }
+  };
+
+  const editarUsuario = () => {
+    setModo("editar");
+  };
+
+  const crearCitas = () => {
+    setModo("crear");
   };
 
   const buscarUsuario = async () => {
@@ -91,14 +97,6 @@ export default function HomeScreen() {
     }
   };
 
-  const editarUsuario = () => {
-    setModo("editar");
-  };
-
-  const agendarCitas = () => {
-    setModo("agendar");
-  };
-
   const buscarCitas = async () => {
     setMensajeCitas("");
     setCitas([]);
@@ -114,8 +112,6 @@ export default function HomeScreen() {
       );
 
       const datos = await respuesta.json();
-
-      console.log("Respuesta de consultar citas:", datos);
 
       if (!respuesta.ok) {
         setMensajeCitas(datos.message || "No fue posible consultar las citas.");
@@ -287,15 +283,15 @@ export default function HomeScreen() {
                   />
                 ))}
 
-                <Pressable style={styles.agendarCita} onPress={agendarCitas}>
-                  <Text style={styles.buttonText}>+ Agendar cita</Text>
+                <Pressable style={styles.crearCita} onPress={crearCitas}>
+                  <Text style={styles.buttonText}>+ crear cita</Text>
                 </Pressable>
               </View>
             </>
           )}
 
-          {/*formulario de agendar citas */}
-          {modo === "agendar" && (
+          {/*formulario de crear citas */}
+          {modo === "crear" && (
             <>
               <View style={styles.volverContainer}>
                 <Pressable
@@ -320,7 +316,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  agendarCita: {
+  crearCita: {
     maxWidth: 500,
     alignSelf: "center",
     width: "100%",
@@ -363,7 +359,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     marginBottom: 8,
     fontWeight: "bold",
-    
   },
 
   input: {

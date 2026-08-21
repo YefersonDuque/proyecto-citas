@@ -13,6 +13,9 @@ export default function UsuarioForm({
   usuario,
   onUsuarioGuardado,
 }: UsuarioFormProps) {
+  const [mensaje, setMensaje] = useState("");
+  const [tipoMensaje, setTipoMensaje] = useState<"exito" | "error" | "">("");
+  const [guardando, setGuardando] = useState(false);
   const [nombre, setNombre] = useState(usuario?.nombre ?? "");
   const [apellido, setApellido] = useState(usuario?.apellido ?? "");
   const [telefono, setTelefono] = useState(usuario?.telefono ?? "");
@@ -21,7 +24,71 @@ export default function UsuarioForm({
     usuario?.fecha_nacimiento ?? "",
   );
 
+  const validarFormulario = () => {
+    setMensaje("");
+    setTipoMensaje("");
+
+    if (
+      !documento.trim() ||
+      !nombre.trim() ||
+      !apellido.trim() ||
+      !telefono.trim() ||
+      !correo.trim() ||
+      !fecha_nacimiento.trim()
+    ) {
+      setMensaje("Todos los campos son obligatorios.");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    const telefonoValido = /^[0-9]{10}$/;
+
+    if (!telefonoValido.test(telefono.trim())) {
+      setMensaje("El teléfono debe tener 10 dígitos.");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!correoValido.test(correo.trim())) {
+      setMensaje("Ingresa un correo electrónico válido.");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    const fechaValida = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!fechaValida.test(fecha_nacimiento.trim())) {
+      setMensaje(
+        "La fecha debe tener el formato YYYY-MM-DD. Ejemplo: 2026-08-20",
+      );
+      setTipoMensaje("error");
+      return false;
+    }
+
+    const [anio, mes, dia] = fecha_nacimiento.split("-").map(Number);
+
+    const fechaIngresada = new Date(anio, mes - 1, dia);
+
+    if (
+      fechaIngresada.getFullYear() !== anio ||
+      fechaIngresada.getMonth() !== mes - 1 ||
+      fechaIngresada.getDate() !== dia
+    ) {
+      setMensaje("La fecha ingresada no es válida.");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    return true;
+  };
+
   const crearUsuario = async () => {
+    if (!validarFormulario()) {
+      return;
+    }
+
     try {
       const respuesta = await fetch(`http://localhost:3000/usuarios`, {
         method: "POST",
@@ -41,20 +108,33 @@ export default function UsuarioForm({
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        console.error("Error al crear usuario:", datos);
+        setMensaje(datos.message || "No fue posible crear el usuario.");
+        setTipoMensaje("error");
         return;
       }
 
-      console.log("Usuario creado:", datos);
+      setMensaje("¡Usuario creado correctamente!");
+      setTipoMensaje("exito");
 
       onUsuarioGuardado(datos);
     } catch (error) {
       console.error("Error al crear usuario:", error);
+
+      setMensaje("Error al conectar con el servidor.");
+      setTipoMensaje("error");
+    } finally {
+      setGuardando(false);
     }
   };
 
-  const modificarUsuario = async () => {
+  const actualizarUsuario = async () => {
+    if (!validarFormulario()) {
+      return;
+    }
+
     try {
+      setGuardando(true);
+
       const respuesta = await fetch(
         `http://localhost:3000/usuarios/${documento}`,
         {
@@ -75,15 +155,22 @@ export default function UsuarioForm({
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        console.error("Error al modificar usuario:", datos);
+        setMensaje(datos.message || "No fue posible actualizar el usuario.");
+        setTipoMensaje("error");
         return;
       }
 
-      console.log("Usuario modificado:", datos);
+      setMensaje("¡Usuario modificado correctamente!");
+      setTipoMensaje("exito");
 
       onUsuarioGuardado(datos);
     } catch (error) {
-      console.error("Error al modificar usuario:", error);
+      console.error("Error al actualizar usuario:", error);
+
+      setMensaje("Error al conectar con el servidor.");
+      setTipoMensaje("error");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -148,12 +235,29 @@ export default function UsuarioForm({
         />
       </View>
 
+      {mensaje !== "" && (
+        <Text
+          style={
+            tipoMensaje === "exito" ? styles.mensajeExito : styles.mensajeError
+          }
+        >
+          {mensaje}
+        </Text>
+      )}
+
       <Pressable
-        style={styles.button}
-        onPress={usuario ? modificarUsuario : crearUsuario}
+        style={[styles.button, guardando && styles.buttonDeshabilitado]}
+        onPress={usuario ? actualizarUsuario : crearUsuario}
+        disabled={guardando}
       >
         <Text style={styles.buttonText}>
-          {usuario ? "Guardar cambios" : "Crear usuario"}
+          {guardando
+            ? usuario
+              ? "Guardando..."
+              : "Creando..."
+            : usuario
+              ? "Guardar cambios"
+              : "Crear usuario"}
         </Text>
       </Pressable>
     </View>
@@ -171,12 +275,41 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: "rgba(255, 255, 255, 0.85)",
   },
+  mensajeExito: {
+    marginTop: 15,
+    padding: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#166534",
+    backgroundColor: "#DCFCE7",
+    borderRadius: 8,
+  },
+
+  mensajeError: {
+    marginTop: 15,
+    padding: 10,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#B91C1C",
+    backgroundColor: "#FEE2E2",
+    borderRadius: 8,
+  },
+  buttonDeshabilitado: {
+    opacity: 0.6,
+  },
+
+  message: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: 15,
+    fontWeight: "bold",
+  },
 
   title: {
     fontSize: 25,
     fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center'
+    textAlign: "center",
   },
 
   row: {

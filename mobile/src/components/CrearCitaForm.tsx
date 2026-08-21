@@ -9,7 +9,7 @@ type Props = {
   onCitaAgendada: () => void;
 };
 
-export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
+export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const [profesionalSeleccionado, setProfesionalSeleccionado] = useState<
     number | null
@@ -20,34 +20,11 @@ export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [motivo, setMotivo] = useState("");
-
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<"exito" | "error" | "">("");
-
   const [guardando, setGuardando] = useState(false);
 
-  const consultarProfesionales = async () => {
-    try {
-      const respuesta = await fetch("http://localhost:3000/profesionales");
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        console.error(datos.message);
-        return;
-      }
-
-      setProfesionales(datos);
-    } catch (error) {
-      console.error("Error al consultar profesionales:", error);
-    }
-  };
-
-  useEffect(() => {
-    consultarProfesionales();
-  }, []);
-
-  const agendarCita = async () => {
+  const crearCita = async () => {
     setMensaje("");
     setTipoMensaje("");
 
@@ -146,7 +123,7 @@ export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        setMensaje(datos.message || "No fue posible agendar la cita.");
+        setMensaje(datos.message || "No fue posible crear la cita.");
         setTipoMensaje("error");
         return;
       }
@@ -160,7 +137,7 @@ export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
       setMotivo("");
       onCitaAgendada();
     } catch (error) {
-      console.error("Error al agendar la cita:", error);
+      console.error("Error al crear la cita:", error);
 
       setMensaje("Error al conectar con el servidor.");
       setTipoMensaje("error");
@@ -168,6 +145,27 @@ export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
       setGuardando(false);
     }
   };
+
+  const consultarProfesionales = async () => {
+    try {
+      const respuesta = await fetch("http://localhost:3000/profesionales");
+
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        console.error(datos.message);
+        return;
+      }
+
+      setProfesionales(datos);
+    } catch (error) {
+      console.error("Error al consultar profesionales:", error);
+    }
+  };
+
+  useEffect(() => {
+    consultarProfesionales();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -264,14 +262,14 @@ export default function AgregarCitaForm({ documento, onCitaAgendada }: Props) {
       {/* BOTÓN */}
       <Pressable
         style={[
-          styles.agendarButton,
-          guardando && styles.agendarButtonDeshabilitado,
+          styles.crearButton,
+          guardando && styles.crearButtonDeshabilitado,
         ]}
-        onPress={agendarCita}
+        onPress={crearCita}
         disabled={guardando}
       >
-        <Text style={styles.agendarButtonText}>
-          {guardando ? "Agendando..." : "Agendar cita"}
+        <Text style={styles.crearButtonText}>
+          {guardando ? "Agendando..." : "crear cita"}
         </Text>
       </Pressable>
     </View>
@@ -392,7 +390,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  agendarButton: {
+  crearButton: {
     width: "100%",
     backgroundColor: "#2563EB",
     paddingVertical: 15,
@@ -402,11 +400,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  agendarButtonDeshabilitado: {
+  crearButtonDeshabilitado: {
     opacity: 0.6,
   },
 
-  agendarButtonText: {
+  crearButtonText: {
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
