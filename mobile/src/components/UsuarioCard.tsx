@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { StyleSheet } from "react-native";
-
+import { formatearFecha } from "@/utils/formato";
 import { Usuario } from "../types/Usuario";
 
 type UsuarioCardProps = {
@@ -36,7 +36,7 @@ export default function UsuarioCard({ usuario }: UsuarioCardProps) {
 
       <View style={styles.row}>
         <Text style={styles.fieldLabel}>Fecha nacimiento</Text>
-        <Text>{usuario.fecha_nacimiento}</Text>
+        <Text>{formatearFecha(usuario.fecha_nacimiento)}</Text>
       </View>
     </View>
   );

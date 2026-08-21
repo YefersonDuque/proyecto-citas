@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Usuario } from "../types/Usuario";
-
+import { formatearFecha } from "@/utils/formato";
 type UsuarioFormProps = {
   documento: string;
   usuario?: Usuario;
@@ -230,7 +230,7 @@ export default function UsuarioForm({
 
         <TextInput
           style={styles.input}
-          value={fecha_nacimiento}
+          value={formatearFecha(fecha_nacimiento)}
           onChangeText={setFecha_nacimiento}
         />
       </View>
