@@ -158,7 +158,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
       }
 
       setProfesionales(datos);
-    } catch (error) {
+    } catch (error) { 
       console.error("Error al consultar profesionales:", error);
     }
   };
