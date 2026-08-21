@@ -2,16 +2,14 @@ const express = require("express");
 
 const {
   crearUsuario,
-  obtenerUsuarios,
-  obtenerUsuario,
-  modificarUsuario,
+  consultarUsuario,
+  actualizarUsuario,
 } = require("../controllers/usuarios.controllers.js");
 
 const router = express.Router();
 
 router.post("/usuarios", crearUsuario);
-router.get("/usuarios", obtenerUsuarios);
-router.get("/usuarios/:documento", obtenerUsuario);
-router.put("/usuarios/:documento", modificarUsuario);
+router.put("/usuarios/:documento", actualizarUsuario);
+router.get("/usuarios/:documento", consultarUsuario);
 
 module.exports = router;

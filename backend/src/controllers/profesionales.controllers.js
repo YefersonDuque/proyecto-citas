@@ -1,6 +1,6 @@
 const pool = require("../config/database.js");
 
-const obtenerProfesionalesActivos = async (req, res) => {
+const consultarProfesionalesActivos = async (req, res) => {
   try {
     const result = await pool.query(`
         SELECT OID, 
@@ -17,4 +17,4 @@ const obtenerProfesionalesActivos = async (req, res) => {
   }
 };
 
-module.exports = { obtenerProfesionalesActivos };
+module.exports = { consultarProfesionalesActivos };

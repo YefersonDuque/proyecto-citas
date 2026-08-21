@@ -1,15 +1,15 @@
 const express = require("express");
 
 const {
-  obtenerCitasUsuario,
   crearCita,
   actualizarEstadoCita,
+  consultarCitasUsuario,
 } = require("../controllers/citas.controllers");
 
 const router = express.Router();
 
-router.get("/usuarios/:documento/citas", obtenerCitasUsuario);
 router.post("/citas", crearCita);
 router.put("/citas/:oid", actualizarEstadoCita);
+router.get("/usuarios/:documento/citas", consultarCitasUsuario);
 
 module.exports = router;

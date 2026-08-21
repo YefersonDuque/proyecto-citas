@@ -48,42 +48,7 @@ const crearUsuario = async (req, res) => {
   }
 };
 
-const obtenerUsuarios = async (req, res) => {
-  try {
-    const result = await pool.query("SELECT * FROM USUARIOS");
-    res.json(result.rows);
-  } catch (error) {
-    console.error("Error al consutlar usuarios", error);
-    res.status(500).json({
-      message: "Error interno del servidor",
-    });
-  }
-};
-
-const obtenerUsuario = async (req, res) => {
-  const { documento } = req.params;
-  try {
-    const result = await pool.query(
-      `
-            SELECT * FROM USUARIOS WHERE DOCUMENTO = $1
-        `,
-      [documento],
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        message: "Usuario no encontrado",
-      });
-    }
-    return res.status(200).json(result.rows[0]);
-  } catch (error) {
-    console.error("Error al consultar usuario:", error);
-    res.status(500).json({
-      message: "Error interno del servidor",
-    });
-  }
-};
-
-const modificarUsuario = async (req, res) => {
+const actualizarUsuario = async (req, res) => {
   const { nombre, apellido, telefono, correo, fecha_nacimiento } = req.body;
   const { documento } = req.params;
   try {
@@ -108,16 +73,46 @@ const modificarUsuario = async (req, res) => {
     }
     return res.status(200).json(result.rows[0]);
   } catch (error) {
-    console.error("Error al modificar usuario:", error);
+    console.error("Error al actualizar usuario:", error);
     return res.status(500).json({
       message: "Error inerno del servidor",
     });
   }
 };
 
+const consultarUsuario = async (req, res) => {
+  const { documento } = req.params;
+  try {
+    const result = await pool.query(
+      `
+            SELECT 
+             DOCUMENTO, 
+             NOMBRE, 
+             APELLIDO, 
+             TELEFONO, 
+             CORREO, 
+             FECHA_NACIMIENTO
+            FROM USUARIOS 
+            WHERE DOCUMENTO = $1
+        `,
+      [documento],
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+    return res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error al consultar usuario:", error);
+    res.status(500).json({
+      message: "Error interno del servidor",
+    });
+  }
+};
+
 module.exports = {
   crearUsuario,
-  obtenerUsuarios,
-  obtenerUsuario,
-  modificarUsuario,
+  consultarUsuario,
+  actualizarUsuario,
 };
