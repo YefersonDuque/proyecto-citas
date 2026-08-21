@@ -11,6 +11,9 @@ export function capitalizarPrimeraLetra(texto: string) {
 }
 
 export function formatearFecha(fecha: string) {
+  if (!fecha) {
+    return "";
+  }
   const fechaSinHora = fecha.split("T")[0];
   const partes = fechaSinHora.split("-");
 

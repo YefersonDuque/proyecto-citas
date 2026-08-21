@@ -26,6 +26,10 @@ export default function HomeScreen() {
   const [mensajeCitas, setMensajeCitas] = useState("");
   const [modo, setModo] = useState<Modo>("usuario");
 
+  const editarUsuario = () => {
+    setModo("editar");
+  };
+
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
       const respuesta = await fetch(`http://localhost:3000/citas/${oid}`, {
@@ -53,10 +57,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Error al actualizar estado de la cita:", error);
     }
-  };
-
-  const editarUsuario = () => {
-    setModo("editar");
   };
 
   const crearCitas = () => {
