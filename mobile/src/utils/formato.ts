@@ -17,7 +17,7 @@ export function formatearFecha(fecha: string) {
   const fechaSinHora = fecha.split("T")[0];
   const partes = fechaSinHora.split("-");
 
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  return `${partes[2]}-${partes[1]}-${partes[0]}`;
 }
 
 export function formatearHora(hora: string) {
