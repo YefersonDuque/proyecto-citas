@@ -1,4 +1,5 @@
 const pool = require("../config/database.js");
+const logger = require("../config/logger.js");
 
 const crearUsuario = async (req, res) => {
   const { documento, nombre, apellido, telefono, correo, fecha_nacimiento } =
@@ -34,14 +35,24 @@ const crearUsuario = async (req, res) => {
         `,
       [documento, nombre, apellido, telefono, correo, fecha_nacimiento, 1],
     );
+    logger.info("Usuario creado correctamente", {
+      documento,
+    });
     res.status(201).json(result.rows[0]);
   } catch (error) {
     if (error.code === "23505") {
+      logger.warn("Intento de registrar un documento existente", {
+        documento,
+      });
       return res.status(409).json({
         message: "El documento ya está registrado",
       });
     }
-    console.error("Error al crear el usuario: ", error);
+    logger.error("Error al crear el usuario", {
+      error: error.message,
+      codigo: error.code,
+      documento,
+    });
     res.status(500).json({
       message: "Error interno del servidor",
     });
@@ -71,11 +82,18 @@ const actualizarUsuario = async (req, res) => {
         message: "Usuario no encontrado",
       });
     }
+    logger.info("Usuario actualizado correctamente", {
+      documento,
+    });
     return res.status(200).json(result.rows[0]);
   } catch (error) {
-    console.error("Error al actualizar usuario:", error);
+    logger.error("Error al actualizar usuario", {
+      error: error.message,
+      codigo: error.code,
+      documento,
+    });
     return res.status(500).json({
-      message: "Error inerno del servidor",
+      message: "Error interno del servidor",
     });
   }
 };
@@ -99,13 +117,20 @@ const consultarUsuario = async (req, res) => {
       [documento],
     );
     if (result.rows.length === 0) {
+      logger.warn("Usuario no encontrado", {
+        documento,
+      });
       return res.status(404).json({
         message: "Usuario no encontrado",
       });
     }
     return res.status(200).json(result.rows[0]);
   } catch (error) {
-    console.error("Error al consultar usuario:", error);
+    logger.error("Error al consultar el usuario", {
+      error: error.message,
+      codigo: error.code,
+      documento,
+    });
     res.status(500).json({
       message: "Error interno del servidor",
     });

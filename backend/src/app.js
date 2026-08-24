@@ -1,4 +1,5 @@
 require("dotenv").config();
+const logger = require("./config/logger");
 
 const express = require("express");
 const cors = require("cors");
@@ -23,4 +24,5 @@ app.get("/saludo", (req, res) => {
 
 app.listen(3000, () => {
   console.log("Servidor ejecutándose en http://localhost:3000");
+  logger.info("Servidor ejecutandose en http://localhost:3000");
 });
