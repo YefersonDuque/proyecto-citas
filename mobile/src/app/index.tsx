@@ -10,10 +10,12 @@ import {
 import { StyleSheet } from "react-native";
 import AgregarCitaForm from "@/components/CrearCitaForm";
 import UsuarioForm from "@/components/UsuarioForm";
+
 import { Cita } from "../types/Cita";
 import CitaCard from "../components/CitaCard";
 import { Usuario } from "../types/Usuario";
 import UsuarioCard from "../components/UsuarioCard";
+import validarFormulario from "../components/UsuarioForm";
 
 type Modo = "usuario" | "editar" | "citas" | "crear";
 
@@ -71,8 +73,19 @@ export default function HomeScreen() {
     setBusquedaRealizada(false);
     setModo("usuario");
 
+    if (!validarFormulario) {
+      return;
+    }
+
     if (!documento) {
       setMensaje("Por favor, ingresa tu documento");
+      return;
+    }
+
+    if (documento.length < 10) {
+      setMensaje(
+        "No es un documento válido, el docmumento debe tener 10 digitos",
+      );
       return;
     }
 

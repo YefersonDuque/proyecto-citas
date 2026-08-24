@@ -21,7 +21,9 @@ export default function UsuarioForm({
   const [telefono, setTelefono] = useState(usuario?.telefono ?? "");
   const [correo, setCorreo] = useState(usuario?.correo ?? "");
   const [fecha_nacimiento, setFecha_nacimiento] = useState(
-    usuario?.fecha_nacimiento ?? "",
+    usuario?.fecha_nacimiento 
+    ? usuario.fecha_nacimiento.split("T")[0]
+    : "",
   );
 
   const validarFormulario = () => {
@@ -37,6 +39,18 @@ export default function UsuarioForm({
       !fecha_nacimiento.trim()
     ) {
       setMensaje("Todos los campos son obligatorios.");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    if (!documento) {
+      setMensaje("Por favor ingrese el documento");
+      setTipoMensaje("error");
+      return false;
+    }
+
+    if (documento.length < 9) {
+      setMensaje("Documento invaido, debe tener 10 digitos");
       setTipoMensaje("error");
       return false;
     }
@@ -222,6 +236,7 @@ export default function UsuarioForm({
           style={styles.input}
           value={correo}
           onChangeText={setCorreo}
+          placeholder="tucorreo@gmail.com"
         />
       </View>
 
@@ -230,8 +245,9 @@ export default function UsuarioForm({
 
         <TextInput
           style={styles.input}
-          value={formatearFecha(fecha_nacimiento)}
+          value={fecha_nacimiento}
           onChangeText={setFecha_nacimiento}
+          placeholder="YYYY-MM-DD"
         />
       </View>
 

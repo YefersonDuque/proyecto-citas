@@ -94,6 +94,7 @@ const consultarUsuario = async (req, res) => {
              FECHA_NACIMIENTO
             FROM USUARIOS 
             WHERE DOCUMENTO = $1
+            AND ESTADO = 1
         `,
       [documento],
     );
