@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-
+import { useEffect, useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 
 import { Profesional } from "../types/Profesional";
+import { consultarProfesionales } from "@/services/profesionales.api";
+import { crearCita as crearCitaApi } from "@/services/citas.api";
 
 type Props = {
   documento: string;
@@ -11,6 +12,7 @@ type Props = {
 
 export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+
   const [profesionalSeleccionado, setProfesionalSeleccionado] = useState<
     number | null
   >(null);
@@ -20,15 +22,39 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [motivo, setMotivo] = useState("");
+
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<"exito" | "error" | "">("");
+
   const [guardando, setGuardando] = useState(false);
+
+  const cargarProfesionales = async () => {
+    try {
+      const datos = await consultarProfesionales();
+
+      setProfesionales(datos);
+    } catch (error) {
+      console.error("Error al cargar profesionales:", error);
+
+      if (error instanceof Error) {
+        setMensaje(error.message);
+      } else {
+        setMensaje("No fue posible cargar los profesionales.");
+      }
+
+      setTipoMensaje("error");
+    }
+  };
+
+  useEffect(() => {
+    cargarProfesionales();
+  }, []);
 
   const crearCita = async () => {
     setMensaje("");
     setTipoMensaje("");
 
-    if (!documento) {
+    if (!documento.trim()) {
       setMensaje("No se encontró el documento del usuario.");
       setTipoMensaje("error");
       return;
@@ -59,6 +85,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
     const [anio, mes, dia] = fecha.split("-").map(Number);
 
     const fechaIngresada = new Date(anio, mes - 1, dia);
+
     if (
       fechaIngresada.getFullYear() !== anio ||
       fechaIngresada.getMonth() !== mes - 1 ||
@@ -106,70 +133,47 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
     try {
       setGuardando(true);
 
-      const respuesta = await fetch("http://localhost:3000/citas", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          documento: documento,
-          profesional_oid: profesionalSeleccionado,
-          fecha: fecha,
-          hora: hora,
-          motivo: motivo,
-        }),
-      });
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setMensaje(datos.message || "No fue posible crear la cita.");
-        setTipoMensaje("error");
-        return;
-      }
+      await crearCitaApi(
+        documento,
+        profesionalSeleccionado,
+        fecha,
+        hora,
+        motivo.trim(),
+      );
 
       setMensaje("¡Cita agendada correctamente!");
       setTipoMensaje("exito");
 
       setProfesionalSeleccionado(null);
+      setSelectorAbierto(false);
       setFecha("");
       setHora("");
       setMotivo("");
+
       onCitaAgendada();
     } catch (error) {
       console.error("Error al crear la cita:", error);
 
-      setMensaje("Error al conectar con el servidor.");
+      if (error instanceof Error) {
+        setMensaje(error.message);
+      } else {
+        setMensaje("Error al crear la cita.");
+      }
+
       setTipoMensaje("error");
     } finally {
       setGuardando(false);
     }
   };
 
-  const consultarProfesionales = async () => {
-    try {
-      const respuesta = await fetch("http://localhost:3000/profesionales");
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        console.error(datos.message);
-        return;
-      }
-
-      setProfesionales(datos);
-    } catch (error) { 
-      console.error("Error al consultar profesionales:", error);
-    }
-  };
-
-  useEffect(() => {
-    consultarProfesionales();
-  }, []);
+  const profesionalActual = profesionales.find(
+    (profesional) => profesional.oid === profesionalSeleccionado,
+  );
 
   return (
     <View style={styles.container}>
       {/* PROFESIONAL */}
+
       <Text style={styles.label}>Profesional</Text>
 
       <Pressable
@@ -177,11 +181,9 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
         onPress={() => setSelectorAbierto(!selectorAbierto)}
       >
         <Text style={styles.placeholderTexto}>
-          {profesionalSeleccionado === null
-            ? "Seleccione un profesional"
-            : profesionales.find(
-                (profesional) => profesional.oid === profesionalSeleccionado,
-              )?.profesional}
+          {profesionalActual
+            ? profesionalActual.profesional
+            : "Seleccione un profesional"}
         </Text>
 
         <Text style={styles.flecha}>{selectorAbierto ? "▲" : "▼"}</Text>
@@ -189,24 +191,32 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
 
       {selectorAbierto && (
         <View style={styles.opciones}>
-          {profesionales.map((profesional) => (
-            <Pressable
-              key={profesional.oid}
-              style={styles.opcion}
-              onPress={() => {
-                setProfesionalSeleccionado(profesional.oid);
-                setSelectorAbierto(false);
-              }}
-            >
-              <Text style={styles.opcionTexto}>{profesional.profesional}</Text>
-            </Pressable>
-          ))}
+          {profesionales.length === 0 ? (
+            <Text style={styles.sinProfesionales}>
+              No hay profesionales disponibles.
+            </Text>
+          ) : (
+            profesionales.map((profesional) => (
+              <Pressable
+                key={profesional.oid}
+                style={styles.opcion}
+                onPress={() => {
+                  setProfesionalSeleccionado(profesional.oid);
+                  setSelectorAbierto(false);
+                }}
+              >
+                <Text style={styles.opcionTexto}>
+                  {profesional.profesional}
+                </Text>
+              </Pressable>
+            ))
+          )}
         </View>
       )}
 
       {/* FECHA Y HORA */}
+
       <View style={styles.fechaHoraContainer}>
-        {/* FECHA */}
         <View style={styles.campoFecha}>
           <Text style={styles.label}>Fecha</Text>
 
@@ -220,7 +230,6 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
           />
         </View>
 
-        {/* HORA */}
         <View style={styles.campoHora}>
           <Text style={styles.label}>Hora</Text>
 
@@ -236,6 +245,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
       </View>
 
       {/* MOTIVO */}
+
       <Text style={styles.label}>Motivo</Text>
 
       <TextInput
@@ -249,6 +259,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
       />
 
       {/* MENSAJE */}
+
       {mensaje !== "" && (
         <Text
           style={
@@ -260,6 +271,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
       )}
 
       {/* BOTÓN */}
+
       <Pressable
         style={[
           styles.crearButton,
@@ -269,7 +281,7 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
         disabled={guardando}
       >
         <Text style={styles.crearButtonText}>
-          {guardando ? "Agendando..." : "crear cita"}
+          {guardando ? "Agendando..." : "Crear cita"}
         </Text>
       </Pressable>
     </View>
@@ -320,7 +332,7 @@ const styles = StyleSheet.create({
     borderColor: "#D1D5DB",
     borderRadius: 8,
     marginTop: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.85)",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     overflow: "hidden",
   },
 
@@ -333,6 +345,12 @@ const styles = StyleSheet.create({
   opcionTexto: {
     fontSize: 16,
     color: "#374151",
+  },
+
+  sinProfesionales: {
+    padding: 14,
+    fontSize: 16,
+    color: "#6B7280",
   },
 
   fechaHoraContainer: {

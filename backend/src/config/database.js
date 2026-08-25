@@ -9,18 +9,12 @@ const pool = new Pool({
 });
 module.exports = pool;
 
-// const estadosPermitidos = [3, 4, 5];
+// ALTER TABLE CITAS
+// DROP CONSTRAINT citas_profesional_fecha_hora_unique;
 
-// if (!estadosPermitidos.includes(estado)) {
-//   logger.warn("Intento de asignar un estado no válido a una cita", {
-//     oid,
-//     estado,
-//   });
-
-//   return res.status(400).json({
-//     message: "El estado de la cita no es válido",
-//   });
-// }
+// CREATE UNIQUE INDEX uq_cita_profesional_fecha_hora_activa
+// ON CITAS (PROFESIONAL_OID, FECHA, HORA)
+// WHERE ESTADO IN (3, 4);
 
 // ALTER TABLE CITAS
 // DROP CONSTRAINT citas_estado_check;

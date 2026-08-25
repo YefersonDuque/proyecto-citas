@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   View,
   Text,
@@ -6,52 +7,66 @@ import {
   Pressable,
   ScrollView,
   ImageBackground,
+  StyleSheet,
 } from "react-native";
-import { StyleSheet } from "react-native";
-import AgregarCitaForm from "@/components/CrearCitaForm";
+
+import CrearCitaForm from "@/components/CrearCitaForm";
 import UsuarioForm from "@/components/UsuarioForm";
+import CitaCard from "../components/CitaCard";
+import UsuarioCard from "../components/UsuarioCard";
 
 import { Cita } from "../types/Cita";
-import CitaCard from "../components/CitaCard";
 import { Usuario } from "../types/Usuario";
-import UsuarioCard from "../components/UsuarioCard";
-import validarFormulario from "../components/UsuarioForm";
+
+import {
+  consultarCitasUsuario,
+  actualizarEstadoCita as actualizarEstadoCitaApi,
+} from "@/services/citas.api";
+
+import { consultarUsuario } from "@/services/usuarios.api";
 
 type Modo = "usuario" | "editar" | "citas" | "crear";
 
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
+
   const [citas, setCitas] = useState<Cita[]>([]);
+
   const [mensaje, setMensaje] = useState("");
+
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
+
   const [mensajeCitas, setMensajeCitas] = useState("");
+
   const [modo, setModo] = useState<Modo>("usuario");
+
+  const nombresEstados: Record<number, string> = {
+    3: "PENDIENTE",
+    4: "CONFIRMADO",
+    5: "CANCELADO",
+    6: "ATENDIDO",
+  };
 
   const editarUsuario = () => {
     setModo("editar");
   };
 
+  const crearCitas = () => {
+    setModo("crear");
+  };
+
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
-      const respuesta = await fetch(`http://localhost:3000/citas/${oid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          estado: estado,
-        }),
-      });
-
-      const datos = await respuesta.json();
+      await actualizarEstadoCitaApi(oid, estado);
 
       setCitas((citasActuales) =>
         citasActuales.map((cita) =>
           cita.oid === oid
             ? {
                 ...cita,
-                estado_cita: estado === 4 ? "CONFIRMADO" : "CANCELADO",
+                estado_cita: nombresEstados[estado],
               }
             : cita,
         ),
@@ -59,10 +74,6 @@ export default function HomeScreen() {
     } catch (error) {
       console.error("Error al actualizar estado de la cita:", error);
     }
-  };
-
-  const crearCitas = () => {
-    setModo("crear");
   };
 
   const buscarUsuario = async () => {
@@ -73,40 +84,44 @@ export default function HomeScreen() {
     setBusquedaRealizada(false);
     setModo("usuario");
 
-    if (!validarFormulario) {
-      return;
-    }
-
-    if (!documento) {
+    if (!documento.trim()) {
       setMensaje("Por favor, ingresa tu documento");
       return;
     }
 
-    if (documento.length < 9) {
+    if (documento.length !== 10) {
       setMensaje(
-        "No es un documento válido, el docmumento debe tener 10 digitos",
+        "No es un documento válido, el documento debe tener 10 dígitos",
       );
       return;
     }
 
     try {
-      const respuesta = await fetch(
-        `http://localhost:3000/usuarios/${documento}`,
-      );
+      const usuarioConsultado = await consultarUsuario(documento);
 
-      const datos = await respuesta.json();
+      setBusquedaRealizada(true);
+      setUsuario(usuarioConsultado);
+    } catch (error) {
+      console.error("Error al consultar usuario:", error);
 
-      if (!respuesta.ok) {
-        setMensaje(datos.message);
+      const errorConStatus = error as Error & {
+        status?: number;
+      };
+
+      // Usuario no encontrado
+      if (errorConStatus.status === 404) {
         setBusquedaRealizada(true);
+        setUsuario(null);
+        setModo("usuario");
         return;
       }
 
-      setBusquedaRealizada(true);
-      setUsuario(datos);
-    } catch (error) {
-      console.error("Error al consultar usuario:", error);
-      setMensaje("Error al consultar el usuario");
+      // Cualquier otro error
+      if (error instanceof Error) {
+        setMensaje(error.message);
+      } else {
+        setMensaje("Error al consultar el usuario");
+      }
     }
   };
 
@@ -114,27 +129,13 @@ export default function HomeScreen() {
     setMensajeCitas("");
     setCitas([]);
 
-    if (!documento) {
+    if (!documento.trim()) {
       setMensajeCitas("Por favor, ingresa tu documento");
       return;
     }
 
     try {
-      const respuesta = await fetch(
-        `http://localhost:3000/usuarios/${documento}/citas`,
-      );
-
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setMensajeCitas(datos.message || "No fue posible consultar las citas.");
-        return;
-      }
-
-      if (!Array.isArray(datos)) {
-        setMensajeCitas("La respuesta del servidor no es válida.");
-        return;
-      }
+      const datos = await consultarCitasUsuario(documento);
 
       setModo("citas");
 
@@ -146,7 +147,14 @@ export default function HomeScreen() {
       setCitas(datos);
     } catch (error) {
       console.error("Error al consultar citas:", error);
-      setMensajeCitas("Error al consultar las citas");
+
+      setModo("citas");
+
+      if (error instanceof Error) {
+        setMensajeCitas(error.message);
+      } else {
+        setMensajeCitas("Error al consultar las citas");
+      }
     }
   };
 
@@ -163,6 +171,8 @@ export default function HomeScreen() {
         >
           <Text style={styles.title}>Citas Médicas</Text>
 
+          {/* BUSCAR USUARIO */}
+
           {modo === "usuario" && !busquedaRealizada && (
             <View style={styles.form}>
               <Text style={styles.label}>Documento</Text>
@@ -171,6 +181,8 @@ export default function HomeScreen() {
                 style={styles.input}
                 value={documento}
                 onChangeText={setDocumento}
+                keyboardType="numeric"
+                maxLength={10}
               />
 
               <Pressable style={styles.button} onPress={buscarUsuario}>
@@ -180,11 +192,13 @@ export default function HomeScreen() {
           )}
 
           {/* MENSAJE DE USUARIO */}
+
           {mensaje !== "" && usuario === null && (
             <Text style={styles.message}>{mensaje}</Text>
           )}
 
           {/* USUARIO EXISTENTE */}
+
           {usuario !== null && modo === "usuario" && (
             <>
               <View style={styles.volverContainer}>
@@ -202,6 +216,7 @@ export default function HomeScreen() {
                   <Text style={styles.textoVolver}>← Volver</Text>
                 </Pressable>
               </View>
+
               <UsuarioCard usuario={usuario} />
 
               <View style={styles.actions}>
@@ -217,6 +232,7 @@ export default function HomeScreen() {
           )}
 
           {/* EDITAR USUARIO */}
+
           {usuario !== null && modo === "editar" && (
             <>
               <View style={styles.volverContainer}>
@@ -227,9 +243,10 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => setModo("usuario")}
                 >
-                  <Text style={styles.textoVolver}> ← Volver </Text>
+                  <Text style={styles.textoVolver}>← Volver</Text>
                 </Pressable>
               </View>
+
               <UsuarioForm
                 documento={usuario.documento}
                 usuario={usuario}
@@ -242,6 +259,7 @@ export default function HomeScreen() {
           )}
 
           {/* CREAR USUARIO */}
+
           {busquedaRealizada && usuario === null && (
             <>
               <View style={styles.volverContainer}>
@@ -269,7 +287,9 @@ export default function HomeScreen() {
               />
             </>
           )}
-          {/*citas*/}
+
+          {/* CITAS */}
+
           {modo === "citas" && (
             <>
               <View style={styles.volverContainer}>
@@ -280,9 +300,10 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => setModo("usuario")}
                 >
-                  <Text style={styles.textoVolver}> ← Volver </Text>
+                  <Text style={styles.textoVolver}>← Volver</Text>
                 </Pressable>
               </View>
+
               <View>
                 {mensajeCitas !== "" && (
                   <Text style={styles.message}>{mensajeCitas}</Text>
@@ -297,13 +318,14 @@ export default function HomeScreen() {
                 ))}
 
                 <Pressable style={styles.crearCita} onPress={crearCitas}>
-                  <Text style={styles.buttonText}>+ crear cita</Text>
+                  <Text style={styles.buttonText}>+ Crear cita</Text>
                 </Pressable>
               </View>
             </>
           )}
 
-          {/*formulario de crear citas */}
+          {/* CREAR CITA */}
+
           {modo === "crear" && (
             <>
               <View style={styles.volverContainer}>
@@ -314,8 +336,9 @@ export default function HomeScreen() {
                   <Text style={styles.textoVolver}>← Volver</Text>
                 </Pressable>
               </View>
+
               {usuario && (
-                <AgregarCitaForm
+                <CrearCitaForm
                   documento={usuario.documento}
                   onCitaAgendada={buscarCitas}
                 />
@@ -414,7 +437,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 5,
     },
-    shadowOpacity: 15.55,
+    shadowOpacity: 0.15,
     shadowRadius: 14,
     elevation: 1,
   },
