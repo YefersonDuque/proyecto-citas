@@ -82,7 +82,7 @@ export default function HomeScreen() {
       return;
     }
 
-    if (documento.length < 10) {
+    if (documento.length < 9) {
       setMensaje(
         "No es un documento válido, el docmumento debe tener 10 digitos",
       );

@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "logs\\.e3dda10e2407c660ed4574762a4a72429311be5c-audit.json",
+    "files": [
+        {
+            "date": 1787620012197,
+            "name": "logs\\proyecto-citas-error-2026-08-24.log",
+            "hash": "bbaee1a8ec4d31b29fb75df6398bddf78051ee921855715018d9b2a9b138b7b8"
+        }
+    ],
+    "hashType": "sha256"
+}

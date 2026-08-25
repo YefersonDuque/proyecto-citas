@@ -131,6 +131,19 @@ const actualizarEstadoCita = async (req, res) => {
   const { oid } = req.params;
   const { estado } = req.body;
 
+  const estadosPermitidos = [3, 4, 5];
+
+  if (!estadosPermitidos.includes(estado)) {
+    logger.warn("Intento de asignar un estado no válido a una cita", {
+      oid,
+      estado,
+    });
+
+    return res.status(400).json({
+      message: "El estado de la cita no es válido",
+    });
+  }
+
   try {
     const result = await pool.query(
       `
