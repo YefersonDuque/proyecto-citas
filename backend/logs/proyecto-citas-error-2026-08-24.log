@@ -1,0 +1,2 @@
+error: Error al actualizar estado de la cita {"codigo":"23514","error":"el nuevo registro para la relación «citas» viola la restricción «check» «citas_estado_check»","estado":5,"oid":"2","timestamp":"2026-08-25T01:25:09.084Z"}
+error: Error al actualizar estado de la cita {"codigo":"23514","error":"el nuevo registro para la relación «citas» viola la restricción «check» «citas_estado_check»","estado":5,"oid":"1","timestamp":"2026-08-25T01:25:22.493Z"}

@@ -1,0 +1,35 @@
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-25T01:06:58.522Z"}
+info: Usuario actualizado correctamente {"documento":"1012141318","timestamp":"2026-08-25T01:08:35.344Z"}
+warn: Intento de actualizar usuario inexistente {"documento":"101214131","timestamp":"2026-08-25T01:09:08.146Z"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-25T01:12:29.430Z"}
+warn: Intento de actualizar usuario inexistente {"documento":"101214131","timestamp":"2026-08-25T01:15:28.966Z"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-25T01:24:32.619Z"}
+info: Usuario consultado correctamente {"documento":"1234567890","timestamp":"2026-08-25T01:24:59.849Z"}
+info: Citas del usuario consultadas correctamente {"cantidad":2,"documento":"1234567890","timestamp":"2026-08-25T01:25:03.683Z"}
+error: Error al actualizar estado de la cita {"codigo":"23514","error":"el nuevo registro para la relación «citas» viola la restricción «check» «citas_estado_check»","estado":5,"oid":"2","timestamp":"2026-08-25T01:25:09.084Z"}
+error: Error al actualizar estado de la cita {"codigo":"23514","error":"el nuevo registro para la relación «citas» viola la restricción «check» «citas_estado_check»","estado":5,"oid":"1","timestamp":"2026-08-25T01:25:22.493Z"}
+info: Citas del usuario consultadas correctamente {"cantidad":2,"documento":"1234567890","timestamp":"2026-08-25T01:34:58.589Z"}
+info: Estado de cita actualizado correctamente {"estadoAnterior":3,"estadoNuevo":5,"oid":"2","timestamp":"2026-08-25T01:35:00.263Z"}
+info: Estado de cita actualizado correctamente {"estadoAnterior":3,"estadoNuevo":4,"oid":"1","timestamp":"2026-08-25T01:35:05.328Z"}
+info: Estado de cita actualizado correctamente {"estadoAnterior":4,"estadoNuevo":5,"oid":"1","timestamp":"2026-08-25T01:35:07.925Z"}
+info: Usuario consultado correctamente {"documento":"1012141318","timestamp":"2026-08-25T01:35:27.123Z"}
+info: Usuario consultado correctamente, pero no tiene citas {"documento":"1012141318","timestamp":"2026-08-25T01:35:28.567Z"}
+info: Usuario actualizado correctamente {"documento":"1012141318","timestamp":"2026-08-25T01:35:40.612Z"}
+info: Usuario consultado correctamente, pero no tiene citas {"documento":"1012141318","timestamp":"2026-08-25T01:35:42.700Z"}
+info: Profesionales consultados correctamente {"cantidad":4,"timestamp":"2026-08-25T01:35:43.453Z"}
+info: Cita asignada correctamente {"fecha":"2026-10-10","hora":"08:00","motivo":"prueba","profesionalOid":1,"timestamp":"2026-08-25T01:36:00.171Z","usuarioOid":4}
+info: Citas del usuario consultadas correctamente {"cantidad":1,"documento":"1012141318","timestamp":"2026-08-25T01:36:00.181Z"}
+info: Estado de cita actualizado correctamente {"estadoAnterior":3,"estadoNuevo":4,"oid":"5","timestamp":"2026-08-25T01:36:03.656Z"}
+info: Estado de cita actualizado correctamente {"estadoAnterior":4,"estadoNuevo":5,"oid":"5","timestamp":"2026-08-25T01:36:05.302Z"}
+warn: Usuario no encontrado {"documento":"123456789","timestamp":"2026-08-25T01:36:14.526Z"}
+info: Usuario creado correctamente {"documento":"123456789","timestamp":"2026-08-25T01:37:04.344Z"}
+info: Usuario consultado correctamente, pero no tiene citas {"documento":"123456789","timestamp":"2026-08-25T01:37:07.184Z"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-25T01:38:53.480Z"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-25T01:51:03.124Z"}
+info: Usuario consultado correctamente {"documento":"1234567890","timestamp":"2026-08-25T01:54:46.762Z"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-24"}
+info: Usuario consultado correctamente {"documento":"1234567890","timestamp":"2026-08-24"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-24 21:03:46"}
+info: Usuario consultado correctamente {"documento":"1234567890","timestamp":"2026-08-24 21:03:55"}
+info: Servidor ejecutandose en http://localhost:3000 {"timestamp":"2026-08-24 21:25:07"}
+info: Usuario consultado correctamente {"documento":"1234567890","timestamp":"2026-08-24 21:26:43"}
