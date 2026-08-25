@@ -1,6 +1,7 @@
 const pool = require("../config/database.js");
 const logger = require("../config/logger.js");
 const { validarDatosUsuario } = require("../utils/usuarios.validaciones");
+const { ESTADOS_USUARIO } = require("../constants/estados.js");
 
 const crearUsuario = async (req, res) => {
   const { documento, nombre, apellido, telefono, correo, fecha_nacimiento } =
@@ -36,7 +37,7 @@ const crearUsuario = async (req, res) => {
         VALUES($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
       `,
-      [documento, nombre, apellido, telefono, correo, fecha_nacimiento, 1],
+      [documento, nombre, apellido, telefono, correo, fecha_nacimiento, ESTADOS_USUARIO.ACTIVO],
     );
 
     logger.info("Usuario creado correctamente", {
@@ -158,9 +159,9 @@ const consultarUsuario = async (req, res) => {
           FECHA_NACIMIENTO
         FROM USUARIOS
         WHERE DOCUMENTO = $1
-        AND ESTADO = 1
+        AND ESTADO = $2
       `,
-      [documento],
+      [documento, ESTADOS_USUARIO.ACTIVO],
     );
 
     if (result.rows.length === 0) {

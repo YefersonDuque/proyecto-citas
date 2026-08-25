@@ -6,13 +6,7 @@ const consultarProfesionalesActivos = async (req, res) => {
     const result = await pool.query(`
       SELECT 
         OID, 
-        CONCAT(
-          NOMBRE,
-          ' ',
-          APELLIDO,
-          ' - ',
-          ESPECIALIDAD
-        ) PROFESIONAL
+        CONCAT(NOMBRE, ' ',APELLIDO,' - ',ESPECIALIDAD) PROFESIONAL
       FROM PROFESIONAL
       WHERE ESTADO = 1
       ORDER BY NOMBRE, APELLIDO

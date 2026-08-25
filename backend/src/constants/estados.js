@@ -1,0 +1,22 @@
+const ESTADOS_CITA = {
+  PENDIENTE: 3,
+  CONFIRMADA: 4,
+  CANCELADA: 5,
+  ATENDIDA: 6,
+};
+
+const ESTADOS_USUARIO = {
+  ACTIVO: 1,
+  INACTIVO: 2,
+};
+
+const ESTADOS_PROFESIONAL = {
+  ACTIVO: 1,
+  INACTIVO: 2,
+};
+
+module.exports = {
+  ESTADOS_CITA,
+  ESTADOS_USUARIO,
+  ESTADOS_PROFESIONAL,
+};
