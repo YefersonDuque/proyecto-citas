@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { Picker } from "@react-native-picker/picker";
 import {
   View,
   Text,
@@ -29,25 +29,23 @@ type Modo = "usuario" | "editar" | "citas" | "crear";
 
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
-
   const [citas, setCitas] = useState<Cita[]>([]);
-
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
   const [mensaje, setMensaje] = useState("");
-
   const [usuario, setUsuario] = useState<Usuario | null>(null);
-
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
-
   const [mensajeCitas, setMensajeCitas] = useState("");
-
   const [modo, setModo] = useState<Modo>("usuario");
-
   const nombresEstados: Record<number, string> = {
     3: "PENDIENTE",
     4: "CONFIRMADO",
     5: "CANCELADO",
     6: "ATENDIDO",
   };
+
+  const citasFiltradas = citas.filter((cita) => {
+    return estadoSeleccionado === "" || cita.estado_cita === estadoSeleccionado;
+  });
 
   const editarUsuario = () => {
     setModo("editar");
@@ -83,6 +81,7 @@ export default function HomeScreen() {
     setCitas([]);
     setBusquedaRealizada(false);
     setModo("usuario");
+    setEstadoSeleccionado("");
 
     if (!documento.trim()) {
       setMensaje("Por favor, ingresa tu documento");
@@ -128,6 +127,7 @@ export default function HomeScreen() {
   const buscarCitas = async () => {
     setMensajeCitas("");
     setCitas([]);
+    setEstadoSeleccionado("");
 
     if (!documento.trim()) {
       setMensajeCitas("Por favor, ingresa tu documento");
@@ -298,10 +298,32 @@ export default function HomeScreen() {
                     styles.volver,
                     pressed && styles.volverPresionado,
                   ]}
-                  onPress={() => setModo("usuario")}
+                  onPress={() => {
+                    setModo("usuario");
+                    setEstadoSeleccionado("");
+                  }}
                 >
                   <Text style={styles.textoVolver}>← Volver</Text>
                 </Pressable>
+              </View>
+              <View style={styles.filtroContainer}>
+                <Text style={styles.filtroTitulo}>
+                  Filtre por estados de la cita
+                </Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={estadoSeleccionado}
+                    onValueChange={(value) => {
+                      setEstadoSeleccionado(value);
+                    }}
+                  >
+                    <Picker.Item label="Seleccione un estado" value={""} />
+                    <Picker.Item label="Pendiente" value={"PENDIENTE"} />
+                    <Picker.Item label="Confirmado" value={"CONFIRMADO"} />
+                    <Picker.Item label="Cancelado" value={"CANCELADO"} />
+                    <Picker.Item label="Atendido" value={"ATENDIDO"} />
+                  </Picker>
+                </View>
               </View>
 
               <View>
@@ -309,13 +331,17 @@ export default function HomeScreen() {
                   <Text style={styles.message}>{mensajeCitas}</Text>
                 )}
 
-                {citas.map((cita) => (
-                  <CitaCard
-                    key={cita.oid}
-                    cita={cita}
-                    actualizarEstadoCita={actualizarEstadoCita}
-                  />
-                ))}
+                {citasFiltradas.length === 0 ? (
+                  <Text>No hay citas en este estado</Text>
+                ) : (
+                  citasFiltradas.map((cita) => (
+                    <CitaCard
+                      key={cita.oid}
+                      cita={cita}
+                      actualizarEstadoCita={actualizarEstadoCita}
+                    />
+                  ))
+                )}
 
                 <Pressable style={styles.crearCita} onPress={crearCitas}>
                   <Text style={styles.buttonText}>+ Crear cita</Text>
@@ -352,6 +378,39 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  filtroContainer: {
+    width: "100%",
+    maxWidth: 500,
+    alignSelf: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+
+  filtroTitulo: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#374151",
+    marginBottom: 10,
+  },
+
+  pickerContainer: {
+    borderWidth: 2,
+    borderColor: "#D1D5DB",
+    borderRadius: 18,
+    backgroundColor: "#F9FAFB",
+    overflow: "hidden",
+  },
   crearCita: {
     maxWidth: 500,
     alignSelf: "center",
