@@ -139,10 +139,10 @@ export default function HomeScreen() {
 
       setModo("citas");
 
-      if (datos.length === 0) {
-        setMensajeCitas("No tienes citas registradas.");
-        return;
-      }
+      // if (datos.length === 0) {
+      //   setMensajeCitas("No tienes citas registradas.");
+      //   return;
+      // }
 
       setCitas(datos);
     } catch (error) {
@@ -326,13 +326,15 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              <View>
+              <View style={styles.volverContainer}>
                 {mensajeCitas !== "" && (
                   <Text style={styles.message}>{mensajeCitas}</Text>
                 )}
 
                 {citasFiltradas.length === 0 ? (
-                  <Text>No hay citas en este estado</Text>
+                  <Text style={styles.textoVolver}>
+                    No tiene citas registradas con el estado seleccionado.
+                  </Text>
                 ) : (
                   citasFiltradas.map((cita) => (
                     <CitaCard

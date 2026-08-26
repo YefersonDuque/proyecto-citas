@@ -35,8 +35,8 @@ const validarDatosUsuario = ({
     return "Todos los campos son obligatorios";
   }
 
-  if (documento.length > 20) {
-    return "El documento no puede superar los 20 caracteres";
+  if (documento.length > 10) {
+    return "El documento no puede superar los 10 caracteres";
   }
 
   const telefonoRegex = /^[0-9]{10}$/;
