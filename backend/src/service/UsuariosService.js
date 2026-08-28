@@ -1,4 +1,4 @@
-const pool = require("../config/database");
+const Conexion = require("../config/database");
 const logger = require("../config/logger");
 const Texto = require("../utils/Texto");
 const HttpCodigo = require("../utils/HttpCodigo");
@@ -6,7 +6,7 @@ const HttpCodigo = require("../utils/HttpCodigo");
 class UsuariosService {
   async CrearUsuario(body) {
     try {
-      await pool.query(
+      await Conexion.query(
         `
         INSERT INTO USUARIOS(
           DOCUMENTO,
@@ -17,17 +17,19 @@ class UsuariosService {
           FECHA_NACIMIENTO,
           ESTADO
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
+        VALUES (
+        '${body.documento}',
+        '${body.nombre}',
+        '${body.apellido}',
+        '${body.telefono}',
+        '${body.correo}',
+        '${body.fecha_nacimiento}',
+        1
+        );
       `,
-        [
-          body.documento,
-          body.nombre,
-          body.apellido,
-          body.telefono,
-          body.correo,
-          body.fecha_nacimiento,
-          1,
-        ],
+        {
+          type: Conexion.QueryTypes.INSERT,
+        },
       );
 
       return {
@@ -42,37 +44,25 @@ class UsuariosService {
 
   async actualizarUsuario(user, body) {
     try {
-      const resultado = await pool.query(
+      const resultado = await Conexion.query(
         `
         UPDATE USUARIOS
         SET
-          NOMBRE = $1,
-          APELLIDO = $2,
-          TELEFONO = $3,
-          CORREO = $4,
-          FECHA_NACIMIENTO = $5,
+          NOMBRE = '${body.nombre}',
+          APELLIDO = '${body.apellido}',
+          TELEFONO = '${body.telefono}',
+          CORREO = '${body.correo}',
+          FECHA_NACIMIENTO = '${body.fecha_nacimiento}',
           FECHA_ACTUALIZA = CURRENT_TIMESTAMP
-        WHERE DOCUMENTO = $6
-          AND ESTADO = $7
-        RETURNING *
+        WHERE DOCUMENTO = '${user.documento}'
+          AND ESTADO = 1
+        RETURNING *;
       `,
-        [
-          body.nombre,
-          body.apellido,
-          body.telefono,
-          body.correo,
-          body.fecha_nacimiento,
-          user.documento,
-          1,
-        ],
+        {
+          type: Conexion.QueryTypes.UPDATE,
+        },
       );
 
-      if (resultado.rows.length === 0) {
-        return {
-          code: HttpCodigo.NO_ENCONTRADO,
-          msg: "Usuario no encontrado",
-        };
-      }
       return {
         code: HttpCodigo.OK,
         msg: Texto.msg.registro_actualizado,
@@ -85,7 +75,7 @@ class UsuariosService {
 
   async consultarUsuario(params) {
     try {
-      const resultado = await pool.query(
+      const resultado = await Conexion.query(
         `
         SELECT
           DOCUMENTO,
@@ -95,12 +85,12 @@ class UsuariosService {
           CORREO,
           FECHA_NACIMIENTO
         FROM USUARIOS
-        WHERE DOCUMENTO = $1
-        AND ESTADO = $2
+        WHERE DOCUMENTO = '${params.documento}'
+        AND ESTADO = 1
       `,
-        [params.documento, 1],
+        { type: Conexion.QueryTypes.SELECT },
       );
-      if (resultado.rows.length === 0) {
+      if (resultado.length === 0) {
         return {
           code: HttpCodigo.OK,
           msg: 0,
@@ -108,7 +98,7 @@ class UsuariosService {
       }
       return {
         code: HttpCodigo.OK,
-        msg: resultado.rows,
+        msg: resultado,
       };
     } catch (error) {
       logger.error("Error al consultar usuario:", error);
