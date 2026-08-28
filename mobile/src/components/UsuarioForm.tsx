@@ -2,6 +2,11 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { Usuario } from "../types/Usuario";
 import { formatearFecha } from "@/utils/formato";
+import {
+  crearUsuario as crearUsuarioApi,
+  actualizarUsuario as actualizarUsuarioApi,
+  type DatosUsuario,
+} from "@/services/usuarios.api";
 type UsuarioFormProps = {
   documento: string;
   usuario?: Usuario;
@@ -21,10 +26,16 @@ export default function UsuarioForm({
   const [telefono, setTelefono] = useState(usuario?.telefono ?? "");
   const [correo, setCorreo] = useState(usuario?.correo ?? "");
   const [fecha_nacimiento, setFecha_nacimiento] = useState(
-    usuario?.fecha_nacimiento 
-    ? usuario.fecha_nacimiento.split("T")[0]
-    : "",
+    usuario?.fecha_nacimiento ? usuario.fecha_nacimiento.split("T")[0] : "",
   );
+
+  const obtenerDatosFormulario = (): Omit<DatosUsuario, "documento"> => ({
+    nombre,
+    apellido,
+    telefono,
+    correo,
+    fecha_nacimiento,
+  });
 
   const validarFormulario = () => {
     setMensaje("");
@@ -104,43 +115,43 @@ export default function UsuarioForm({
     }
 
     try {
-      const respuesta = await fetch(`http://localhost:3000/usuarios`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          documento,
-          nombre,
-          apellido,
-          telefono,
-          correo,
-          fecha_nacimiento,
-        }),
+      setGuardando(true);
+      const datosFormulario = obtenerDatosFormulario();
+      const mensajeRespuesta = await crearUsuarioApi({
+        documento,
+        ...datosFormulario,
+        nombre,
+        apellido,
+        telefono,
+        correo,
+        fecha_nacimiento,
       });
 
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setMensaje(datos.message || "No fue posible crear el usuario.");
-        setTipoMensaje("error");
-        return;
-      }
-
-      setMensaje("¡Usuario creado correctamente!");
+      setMensaje(mensajeRespuesta || "¡Usuario creado correctamente!");
       setTipoMensaje("exito");
 
-      onUsuarioGuardado(datos);
+      // el back confirma la creacion con un mensaje pero no devuelve el usuario. creamos el objeto para actualizar la interface local
+      const usuarioCreado: Usuario = {
+        oid: 0,
+        documento,
+        ...datosFormulario,
+        estado: 1,
+      };
+
+      onUsuarioGuardado(usuarioCreado);
     } catch (error) {
       console.error("Error al crear usuario:", error);
 
-      setMensaje("Error al conectar con el servidor.");
+      setMensaje(
+        error instanceof Error
+          ? error.message
+          : "Error desconocido al crear el usuario.",
+      );
       setTipoMensaje("error");
     } finally {
       setGuardando(false);
     }
   };
-
   const actualizarUsuario = async () => {
     if (!validarFormulario()) {
       return;
@@ -148,40 +159,32 @@ export default function UsuarioForm({
 
     try {
       setGuardando(true);
-
-      const respuesta = await fetch(
-        `http://localhost:3000/usuarios/${documento}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            nombre,
-            apellido,
-            telefono,
-            correo,
-            fecha_nacimiento,
-          }),
-        },
+      const datosFormulario = obtenerDatosFormulario();
+      const mensajeRespuesta = await actualizarUsuarioApi(
+        documento,
+        datosFormulario,
       );
 
-      const datos = await respuesta.json();
-
-      if (!respuesta.ok) {
-        setMensaje(datos.message || "No fue posible actualizar el usuario.");
-        setTipoMensaje("error");
-        return;
-      }
-
-      setMensaje("¡Usuario modificado correctamente!");
+      setMensaje(mensajeRespuesta || "¡Usuario modificado correctamente!");
       setTipoMensaje("exito");
 
-      onUsuarioGuardado(datos);
+      // Conservamos los campos que no edita el formulario.
+      const usuarioActualizado: Usuario = {
+        oid: usuario?.oid ?? 0,
+        documento,
+        ...datosFormulario,
+        estado: usuario?.estado ?? 1,
+      };
+
+      onUsuarioGuardado(usuarioActualizado);
     } catch (error) {
       console.error("Error al actualizar usuario:", error);
 
-      setMensaje("Error al conectar con el servidor.");
+      setMensaje(
+        error instanceof Error
+          ? error.message
+          : "Error al conectar con el servidor.",
+      );
       setTipoMensaje("error");
     } finally {
       setGuardando(false);

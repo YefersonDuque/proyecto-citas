@@ -23,7 +23,7 @@ import {
   actualizarEstadoCita as actualizarEstadoCitaApi,
 } from "@/services/citas.api";
 
-import { consultarUsuario } from "@/services/usuarios.api";
+import { ConsultarUsuario } from "@/services/usuarios.api";
 
 type Modo = "usuario" | "editar" | "citas" | "crear";
 
@@ -83,7 +83,9 @@ export default function HomeScreen() {
     setModo("usuario");
     setEstadoSeleccionado("");
 
-    if (!documento.trim()) {
+    const documentoLimpio = documento.trim();
+
+    if (!documentoLimpio) {
       setMensaje("Por favor, ingresa tu documento");
       return;
     }
@@ -96,24 +98,12 @@ export default function HomeScreen() {
     }
 
     try {
-      const usuarioConsultado = await consultarUsuario(documento);
+      const usuarioConsultado = await ConsultarUsuario(documentoLimpio);
 
       setBusquedaRealizada(true);
       setUsuario(usuarioConsultado);
     } catch (error) {
       console.error("Error al consultar usuario:", error);
-
-      const errorConStatus = error as Error & {
-        status?: number;
-      };
-
-      // Usuario no encontrado
-      if (errorConStatus.status === 404) {
-        setBusquedaRealizada(true);
-        setUsuario(null);
-        setModo("usuario");
-        return;
-      }
 
       // Cualquier otro error
       if (error instanceof Error) {
