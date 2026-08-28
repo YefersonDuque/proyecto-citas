@@ -1,6 +1,6 @@
 import { View, Text, Pressable } from "react-native";
 import { StyleSheet } from "react-native";
-import { ESTADOS_CITA } from "@/constants/estados";
+import { ESTADOS_CITA, NOMBRES_ESTADOS_CITA } from "@/constants/estados";
 
 import { Cita } from "../types/Cita";
 import {
@@ -51,20 +51,20 @@ export default function CitaCard({
 
         <Text
           style={
-            cita.estado_cita === "CONFIRMADO"
+            cita.estado_cita === ESTADOS_CITA.CONFIRMADO
               ? styles.estadoConfirmado
-              : cita.estado_cita === "ATENDIDO"
+              : cita.estado_cita === ESTADOS_CITA.ATENDIDO
                 ? styles.estadoAtendido
-                : cita.estado_cita === "CANCELADO"
+                : cita.estado_cita === ESTADOS_CITA.CANCELADO
                   ? styles.estadoCancelado
                   : styles.estadoPendiente
           }
         >
-          {capitalizarPrimeraLetra(cita.estado_cita)}
+          {NOMBRES_ESTADOS_CITA[cita.estado_cita] ?? "Estado desconocido"}
         </Text>
       </View>
 
-      {cita.estado_cita.toUpperCase() === "PENDIENTE" && (
+      {cita.estado_cita === ESTADOS_CITA.PENDIENTE && (
         <View style={styles.actions}>
           <Pressable
             style={styles.confirmButton}
@@ -86,7 +86,7 @@ export default function CitaCard({
         </View>
       )}
 
-      {cita.estado_cita.toUpperCase() === "CONFIRMADO" && (
+      {cita.estado_cita === ESTADOS_CITA.CONFIRMADO && (
         <View style={styles.actions}>
           <Pressable
             style={styles.completedButton}
@@ -107,10 +107,10 @@ export default function CitaCard({
         </View>
       )}
 
-      {cita.estado_cita.toUpperCase() === "CANCELADO" && (
+      {cita.estado_cita === ESTADOS_CITA.CANCELADO && (
         <Text style={styles.cancelledText}>X Cita cancelada</Text>
       )}
-      {cita.estado_cita.toUpperCase() === "ATENDIDO" && (
+      {cita.estado_cita === ESTADOS_CITA.ATENDIDO && (
         <Text style={styles.completedText}>✓ Atención realizada</Text>
       )}
     </View>

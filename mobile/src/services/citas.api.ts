@@ -10,10 +10,16 @@ export const consultarCitasUsuario = async (
     const datos = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error(datos.message || "Error al consultar las citas");
+      throw new Error(
+        datos.msg || datos.message || "Error al consultar las citas.",
+      );
     }
 
-    return datos;
+    if (!Array.isArray(datos.msg)) {
+      throw new Error("La respuesta del servidor no es un arreglo de citas.");
+    }
+
+    return datos.msg;
   } catch (error) {
     console.error("Error al consultar citas:", error);
 
@@ -25,35 +31,31 @@ export const consultarCitasUsuario = async (
   }
 };
 
-export const crearCita = async (
-  documento: string,
-  profesional_oid: number,
-  fecha: string,
-  hora: string,
-  motivo: string,
-) => {
+export type DatosCita = {
+  documento: string;
+  profesional_oid: number;
+  fecha: string;
+  hora: string;
+  motivo: string;
+};
+
+export const crearCita = async (cita: DatosCita): Promise<void> => {
   try {
     const respuesta = await fetch(`${API_URL}/citas`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        documento,
-        profesional_oid,
-        fecha,
-        hora,
-        motivo,
-      }),
+      body: JSON.stringify(cita),
     });
 
     const datos = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error(datos.message || "No fue posible crear la cita.");
+      throw new Error(
+        datos.msg || datos.message || "No fue posible crear la cita.",
+      );
     }
-
-    return datos;
   } catch (error) {
     console.error("Error al crear la cita:", error);
 
@@ -81,7 +83,9 @@ export const actualizarEstadoCita = async (oid: number, estado: number) => {
 
     if (!respuesta.ok) {
       throw new Error(
-        datos.message || "No fue posible actualizar el estado de la cita.",
+        datos.msg ||
+          datos.message ||
+          "No fue posible actualizar el estado de la cita.",
       );
     }
 

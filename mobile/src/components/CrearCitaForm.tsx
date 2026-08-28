@@ -12,37 +12,35 @@ type Props = {
 
 export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
   const [profesionales, setProfesionales] = useState<Profesional[]>([]);
-
+  const [cargandoProfesionales, setCargandoProfesionales] = useState(true);
   const [profesionalSeleccionado, setProfesionalSeleccionado] = useState<
     number | null
   >(null);
-
   const [selectorAbierto, setSelectorAbierto] = useState(false);
-
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [motivo, setMotivo] = useState("");
-
   const [mensaje, setMensaje] = useState("");
   const [tipoMensaje, setTipoMensaje] = useState<"exito" | "error" | "">("");
-
   const [guardando, setGuardando] = useState(false);
 
   const cargarProfesionales = async () => {
     try {
-      const datos = await consultarProfesionales();
+      setCargandoProfesionales(true);
 
+      const datos = await consultarProfesionales();
       setProfesionales(datos);
     } catch (error) {
       console.error("Error al cargar profesionales:", error);
 
-      if (error instanceof Error) {
-        setMensaje(error.message);
-      } else {
-        setMensaje("No fue posible cargar los profesionales.");
-      }
-
+      setMensaje(
+        error instanceof Error
+          ? error.message
+          : "No fue posible cargar los profesionales.",
+      );
       setTipoMensaje("error");
+    } finally {
+      setCargandoProfesionales(false);
     }
   };
 
@@ -133,13 +131,13 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
     try {
       setGuardando(true);
 
-      await crearCitaApi(
+      await crearCitaApi({
         documento,
-        profesionalSeleccionado,
+        profesional_oid: profesionalSeleccionado,
         fecha,
         hora,
-        motivo.trim(),
-      );
+        motivo: motivo.trim(),
+      });
 
       setMensaje("¡Cita agendada correctamente!");
       setTipoMensaje("exito");
@@ -179,11 +177,14 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
       <Pressable
         style={styles.selector}
         onPress={() => setSelectorAbierto(!selectorAbierto)}
+        disabled={cargandoProfesionales}
       >
         <Text style={styles.placeholderTexto}>
-          {profesionalActual
-            ? profesionalActual.profesional
-            : "Seleccione un profesional"}
+          {cargandoProfesionales
+            ? "Cargando profesionales..."
+            : profesionalActual
+              ? profesionalActual.profesional
+              : "Seleccione un profesional"}
         </Text>
 
         <Text style={styles.flecha}>{selectorAbierto ? "▲" : "▼"}</Text>
@@ -191,7 +192,11 @@ export default function CrearCitaForm({ documento, onCitaAgendada }: Props) {
 
       {selectorAbierto && (
         <View style={styles.opciones}>
-          {profesionales.length === 0 ? (
+          {cargandoProfesionales ? (
+            <Text style={styles.sinProfesionales}>
+              Cargando profesionales...
+            </Text>
+          ) : profesionales.length === 0 ? (
             <Text style={styles.sinProfesionales}>
               No hay profesionales disponibles.
             </Text>

@@ -6,5 +6,5 @@ export type Cita = {
   motivo: string;
   fecha_cita: string;
   hora_cita: string;
-  estado_cita: string;
+  estado_cita: number;
 };

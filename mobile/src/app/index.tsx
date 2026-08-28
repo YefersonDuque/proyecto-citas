@@ -14,10 +14,9 @@ import CrearCitaForm from "@/components/CrearCitaForm";
 import UsuarioForm from "@/components/UsuarioForm";
 import CitaCard from "../components/CitaCard";
 import UsuarioCard from "../components/UsuarioCard";
-
 import { Cita } from "../types/Cita";
 import { Usuario } from "../types/Usuario";
-
+import { ESTADOS_CITA } from "@/constants/estados";
 import {
   consultarCitasUsuario,
   actualizarEstadoCita as actualizarEstadoCitaApi,
@@ -30,21 +29,19 @@ type Modo = "usuario" | "editar" | "citas" | "crear";
 export default function HomeScreen() {
   const [documento, setDocumento] = useState("");
   const [citas, setCitas] = useState<Cita[]>([]);
-  const [estadoSeleccionado, setEstadoSeleccionado] = useState("");
+  const [estadoSeleccionado, setEstadoSeleccionado] = useState<number | null>(
+    null,
+  );
   const [mensaje, setMensaje] = useState("");
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [busquedaRealizada, setBusquedaRealizada] = useState(false);
   const [mensajeCitas, setMensajeCitas] = useState("");
   const [modo, setModo] = useState<Modo>("usuario");
-  const nombresEstados: Record<number, string> = {
-    3: "PENDIENTE",
-    4: "CONFIRMADO",
-    5: "CANCELADO",
-    6: "ATENDIDO",
-  };
 
   const citasFiltradas = citas.filter((cita) => {
-    return estadoSeleccionado === "" || cita.estado_cita === estadoSeleccionado;
+    return (
+      estadoSeleccionado === null || cita.estado_cita === estadoSeleccionado
+    );
   });
 
   const editarUsuario = () => {
@@ -57,6 +54,8 @@ export default function HomeScreen() {
 
   const actualizarEstadoCita = async (oid: number, estado: number) => {
     try {
+      setMensajeCitas("");
+
       await actualizarEstadoCitaApi(oid, estado);
 
       setCitas((citasActuales) =>
@@ -64,13 +63,19 @@ export default function HomeScreen() {
           cita.oid === oid
             ? {
                 ...cita,
-                estado_cita: nombresEstados[estado],
+                estado_cita: estado,
               }
             : cita,
         ),
       );
     } catch (error) {
       console.error("Error al actualizar estado de la cita:", error);
+
+      setMensajeCitas(
+        error instanceof Error
+          ? error.message
+          : "No fue posible actualizar el estado de la cita.",
+      );
     }
   };
 
@@ -81,7 +86,7 @@ export default function HomeScreen() {
     setCitas([]);
     setBusquedaRealizada(false);
     setModo("usuario");
-    setEstadoSeleccionado("");
+    setEstadoSeleccionado(null);
 
     const documentoLimpio = documento.trim();
 
@@ -90,7 +95,7 @@ export default function HomeScreen() {
       return;
     }
 
-    if (documento.length !== 10) {
+    if (documentoLimpio.length !== 10) {
       setMensaje(
         "No es un documento válido, el documento debe tener 10 dígitos",
       );
@@ -117,7 +122,7 @@ export default function HomeScreen() {
   const buscarCitas = async () => {
     setMensajeCitas("");
     setCitas([]);
-    setEstadoSeleccionado("");
+    setEstadoSeleccionado(null);
 
     if (!documento.trim()) {
       setMensajeCitas("Por favor, ingresa tu documento");
@@ -290,7 +295,7 @@ export default function HomeScreen() {
                   ]}
                   onPress={() => {
                     setModo("usuario");
-                    setEstadoSeleccionado("");
+                    setEstadoSeleccionado(null);
                   }}
                 >
                   <Text style={styles.textoVolver}>← Volver</Text>
@@ -302,16 +307,30 @@ export default function HomeScreen() {
                 </Text>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={estadoSeleccionado}
-                    onValueChange={(value) => {
-                      setEstadoSeleccionado(value);
+                    selectedValue={estadoSeleccionado ?? ""}
+                    onValueChange={(valor) => {
+                      setEstadoSeleccionado(
+                        valor === "" ? null : Number(valor),
+                      );
                     }}
                   >
-                    <Picker.Item label="Seleccione un estado" value={""} />
-                    <Picker.Item label="Pendiente" value={"PENDIENTE"} />
-                    <Picker.Item label="Confirmado" value={"CONFIRMADO"} />
-                    <Picker.Item label="Cancelado" value={"CANCELADO"} />
-                    <Picker.Item label="Atendido" value={"ATENDIDO"} />
+                    <Picker.Item label="Todos los estados" value="" />
+                    <Picker.Item
+                      label="Pendiente"
+                      value={ESTADOS_CITA.PENDIENTE}
+                    />
+                    <Picker.Item
+                      label="Confirmado"
+                      value={ESTADOS_CITA.CONFIRMADO}
+                    />
+                    <Picker.Item
+                      label="Cancelado"
+                      value={ESTADOS_CITA.CANCELADO}
+                    />
+                    <Picker.Item
+                      label="Atendido"
+                      value={ESTADOS_CITA.ATENDIDO}
+                    />
                   </Picker>
                 </View>
               </View>

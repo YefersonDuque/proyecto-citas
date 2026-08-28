@@ -1,15 +1,9 @@
 const express = require("express");
 
-const {
-  crearCita,
-  actualizarEstadoCita,
-  consultarCitasUsuario,
-} = require("../controllers/citas.controllers");
+const CitasController = require("../controllers/citas.controllers.js");
 
-const router = express.Router();
+const Router = express.Router();
 
-router.post("/citas", crearCita);
-router.put("/citas/:oid", actualizarEstadoCita);
-router.get("/usuarios/:documento/citas", consultarCitasUsuario);
+Router.use("/", CitasController);
 
-module.exports = router;
+module.exports = Router;

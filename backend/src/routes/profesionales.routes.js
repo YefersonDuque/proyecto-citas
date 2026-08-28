@@ -1,10 +1,8 @@
 const express = require("express");
-const {
-  consultarProfesionalesActivos,
-} = require("../controllers/profesionales.controllers.js");
+const ProfesionalController = require("../controllers/profesionales.controllers.js");
 
-const router = express.Router();
+const Router = express.Router();
 
-router.get("/profesionales", consultarProfesionalesActivos);
+Router.use("/", ProfesionalController);
 
-module.exports = router;
+module.exports = Router;
