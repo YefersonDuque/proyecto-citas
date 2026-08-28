@@ -1,6 +1,6 @@
 const pool = require("../config/database");
 const logger = require("../config/logger");
-const Texto  = require("../utils/Texto");
+const Texto = require("../utils/Texto");
 const HttpCodigo = require("../utils/HttpCodigo");
 
 class UsuariosService {
@@ -73,7 +73,6 @@ class UsuariosService {
           msg: "Usuario no encontrado",
         };
       }
-
       return {
         code: HttpCodigo.OK,
         msg: Texto.msg.registro_actualizado,

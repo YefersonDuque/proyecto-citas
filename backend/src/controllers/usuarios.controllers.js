@@ -1,5 +1,5 @@
-const logger = require("../config/logger.js");
 const express = require("express");
+const logger = require("../config/logger.js");
 const HttpCodigo = require("../utils/HttpCodigo");
 const Texto = require("../utils/Texto");
 const UsuariosService = require("../service/UsuariosService");

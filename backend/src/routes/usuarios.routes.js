@@ -2,8 +2,8 @@ const express = require("express");
 
 const UsuariosController = require("../controllers/usuarios.controllers.js");
 
-const router = express.Router();
+const Router = express.Router();
 
-router.use("/", UsuariosController);
+Router.use("/", UsuariosController);
 
-module.exports = router;
+module.exports = Router;
