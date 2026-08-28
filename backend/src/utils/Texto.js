@@ -13,6 +13,9 @@ const Texto = {
     sin_registros: "¡No se encontraron registros!",
     token_expirado: "¡Token expirado!",
     token_invalido: "¡Token inválido!",
+    cita_agendada: "Cita agendada correctamente",
+    id_invalido: "El identificador de la cita no es válido.",
+    estado_invalido: "El estado de la cita no es válido."
   },
 };
 

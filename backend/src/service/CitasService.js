@@ -98,7 +98,7 @@ class CitasService {
 
       return {
         code: HttpCodigo.CREADO,
-        msg: "Cita agendada correctamente",
+        msg: Texto.msg.cita_agendada,
       };
     } catch (error) {
       logger.error("Error al crear cita:", error);
@@ -164,7 +164,7 @@ class CitasService {
       if (!Number.isInteger(oidCita) || oidCita <= 0) {
         return {
           code: HttpCodigo.SOLICITUD_INCORRECTA,
-          msg: "El identificador de la cita no es válido.",
+          msg: Texto.msg.id_invalido,
         };
       }
 
@@ -174,7 +174,7 @@ class CitasService {
       if (!estadosValidos.includes(nuevoEstado)) {
         return {
           code: HttpCodigo.SOLICITUD_INCORRECTA,
-          msg: "El estado de la cita no es válido.",
+          msg: Text.msg.estado_incalido,
         };
       }
 
@@ -193,7 +193,7 @@ class CitasService {
       if (resultadoCita.length === 0) {
         return {
           code: HttpCodigo.NO_ENCONTRADO,
-          msg: "Cita no encontrada.",
+          msg: Texto.msg.sin_registros,
         };
       }
 
@@ -217,7 +217,7 @@ class CitasService {
       if (!estadosPermitidos.includes(nuevoEstado)) {
         return {
           code: HttpCodigo.SOLICITUD_INCORRECTA,
-          msg: "No es posible realizar este cambio de estado.",
+          msg: Texto.msg.codigo_invalido,
         };
       }
 
