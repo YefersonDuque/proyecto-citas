@@ -4,7 +4,7 @@ const Texto = require("../utils/Texto");
 const HttpCodigo = require("../utils/HttpCodigo");
 
 class UsuariosService {
-  async CrearUsuario(body) {
+  async crearUsuario(body) {
     try {
       await Conexion.query(
         `

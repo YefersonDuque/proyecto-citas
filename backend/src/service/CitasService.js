@@ -106,55 +106,6 @@ class CitasService {
     }
   }
 
-  async consultarCitasUsuario(documento) {
-    try {
-      const resultado = await Conexion.query(
-        `
-      SELECT
-        CITAS.OID,
-        CONCAT(
-          USUARIOS.NOMBRE,
-          ' ',
-          USUARIOS.APELLIDO
-        ) AS PACIENTE,
-        CONCAT(
-          PROFESIONAL.NOMBRE,
-          ' ',
-          PROFESIONAL.APELLIDO
-        ) AS PROFESIONAL,
-        PROFESIONAL.ESPECIALIDAD,
-        CITAS.MOTIVO,
-        CITAS.FECHA AS FECHA_CITA,
-        CITAS.HORA AS HORA_CITA,
-        CITAS.ESTADO AS ESTADO_CITA
-      FROM CITAS
-      INNER JOIN USUARIOS
-        ON USUARIOS.OID = CITAS.USUARIO_OID
-      INNER JOIN PROFESIONAL
-        ON PROFESIONAL.OID = CITAS.PROFESIONAL_OID
-      WHERE USUARIOS.DOCUMENTO = '${documento}'
-      ORDER BY CITAS.FECHA DESC, CITAS.HORA DESC;
-      `,
-        {
-          type: Conexion.QueryTypes.SELECT,
-        },
-      );
-
-      logger.info("Citas del usuario consultadas correctamente", {
-        documento,
-        cantidad: resultado.length,
-      });
-
-      return {
-        code: HttpCodigo.OK,
-        msg: resultado,
-      };
-    } catch (error) {
-      logger.error("Error al consultar las citas del usuario:", error);
-      throw error;
-    }
-  }
-
   async actualizarEstadoCita(oid, estado) {
     try {
       const oidCita = Number(oid);
@@ -239,6 +190,45 @@ class CitasService {
       };
     } catch (error) {
       logger.error("Error al actualizar el estado de la cita:", error);
+      throw error;
+    }
+  }
+
+  async consultarCitasUsuario(documento) {
+    try {
+      const resultado = await Conexion.query(
+        `
+      SELECT
+        CITAS.OID,
+        CONCAT(USUARIOS.NOMBRE,' ',USUARIOS.APELLIDO) AS PACIENTE,
+        CONCAT(PROFESIONAL.NOMBRE,' ',PROFESIONAL.APELLIDO) AS PROFESIONAL,
+        PROFESIONAL.ESPECIALIDAD,
+        CITAS.MOTIVO,
+        CITAS.FECHA AS FECHA_CITA,
+        CITAS.HORA AS HORA_CITA,
+        CITAS.ESTADO AS ESTADO_CITA
+      FROM CITAS 
+      INNER JOIN USUARIOS ON USUARIOS.OID = CITAS.USUARIO_OID
+      INNER JOIN PROFESIONAL ON PROFESIONAL.OID = CITAS.PROFESIONAL_OID
+      WHERE USUARIOS.DOCUMENTO = '${documento}'
+      ORDER BY CITAS.FECHA DESC, CITAS.HORA DESC;
+      `,
+        {
+          type: Conexion.QueryTypes.SELECT,
+        },
+      );
+
+      logger.info("Citas del usuario consultadas correctamente", {
+        documento,
+        cantidad: resultado.length,
+      });
+
+      return {
+        code: HttpCodigo.OK,
+        msg: resultado,
+      };
+    } catch (error) {
+      logger.error("Error al consultar las citas del usuario:", error);
       throw error;
     }
   }

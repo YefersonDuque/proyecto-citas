@@ -1,8 +1,8 @@
 const express = require("express");
 const logger = require("../config/logger.js");
-const HttpCodigo = require("../utils/HttpCodigo");
-const Texto = require("../utils/Texto");
-const ProfesionalesService = require("../service/ProfesionalesService");
+const HttpCodigo = require("../utils/HttpCodigo.js");
+const Texto = require("../utils/Texto.js");
+const ProfesionalesService = require("../service/ProfesionalesService.js");
 
 const ProfesionalController = express.Router();
 
